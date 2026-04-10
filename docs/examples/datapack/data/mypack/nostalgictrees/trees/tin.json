@@ -1,0 +1,7 @@
+{
+  "name": "tin",
+  "tier": "tier_2",
+  "output_item": "mekanism:raw_tin",
+  "output_count": 2,
+  "required_mod": "mekanism"
+}
