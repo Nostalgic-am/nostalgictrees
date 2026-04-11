@@ -9,7 +9,6 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.minecraft.world.level.block.Block;
-import com.nostalgictrees.NTBlocks;
 
 import java.util.function.Supplier;
 
@@ -29,6 +28,9 @@ public class NTCreativeTab {
                         output.accept(NTItems.GOLDEN_MALLET.get());
                         output.accept(NTItems.DIAMOND_MALLET.get());
                         output.accept(NTItems.NETHERITE_MALLET.get());
+
+                        // Resource Beehive
+                        output.accept(NTItems.RESOURCE_BEEHIVE_ITEM.get());
 
                         // Saplings
                         for (ResourceTreeType tree : NTTreeRegistry.getAllTrees()) {
@@ -64,6 +66,12 @@ public class NTCreativeTab {
                         for (ResourceTreeType tree : NTTreeRegistry.getAllTrees()) {
                             var chunk = NTItems.getAllChunkItems().get(tree.name());
                             if (chunk != null) output.accept(chunk.get());
+                        }
+
+                        // Honeycombs
+                        for (ResourceTreeType tree : NTTreeRegistry.getAllTrees()) {
+                            var comb = NTItems.getAllHoneycombItems().get(tree.name());
+                            if (comb != null) output.accept(comb.get());
                         }
                     })
                     .build()

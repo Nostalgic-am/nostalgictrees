@@ -6,6 +6,7 @@ import com.nostalgictrees.data.ResourceTreeType;
 import com.nostalgictrees.item.MalletItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -30,9 +31,14 @@ public class NTItems {
     public static final DeferredItem<Item> NETHERITE_MALLET = ITEMS.register("netherite_mallet",
             () -> new MalletItem(MalletTier.NETHERITE));
 
+    // === Resource Beehive block item ===
+    public static final DeferredItem<Item> RESOURCE_BEEHIVE_ITEM = ITEMS.register("resource_beehive",
+            () -> new BlockItem(NTBlocks.RESOURCE_BEEHIVE.get(), new Item.Properties()));
+
     // === Tree-specific items (dynamic from config) ===
     private static final Map<String, DeferredItem<Item>> APPLE_ITEMS = new HashMap<>();
     private static final Map<String, DeferredItem<Item>> CHUNK_ITEMS = new HashMap<>();
+    private static final Map<String, DeferredItem<Item>> HONEYCOMB_ITEMS = new HashMap<>();
     private static final Map<String, DeferredItem<Item>> LOG_ITEMS = new HashMap<>();
     private static final Map<String, DeferredItem<Item>> STRIPPED_LOG_ITEMS = new HashMap<>();
     private static final Map<String, DeferredItem<Item>> LEAVES_ITEMS = new HashMap<>();
@@ -51,6 +57,9 @@ public class NTItems {
                 () -> new Item(new Item.Properties())));
 
         CHUNK_ITEMS.put(name, ITEMS.register(tree.chunkId(),
+                () -> new Item(new Item.Properties())));
+
+        HONEYCOMB_ITEMS.put(name, ITEMS.register(tree.honeycombId(),
                 () -> new Item(new Item.Properties())));
 
         LOG_ITEMS.put(name, ITEMS.register(tree.logId(),
@@ -73,8 +82,17 @@ public class NTItems {
         return item != null ? item.get() : null;
     }
 
+    /**
+     * Get a honeycomb ItemStack for a given tree name.
+     */
+    public static ItemStack getHoneycombItem(String treeName) {
+        DeferredItem<Item> item = HONEYCOMB_ITEMS.get(treeName);
+        return item != null ? new ItemStack(item.get()) : ItemStack.EMPTY;
+    }
+
     public static Map<String, DeferredItem<Item>> getAllAppleItems() { return APPLE_ITEMS; }
     public static Map<String, DeferredItem<Item>> getAllChunkItems() { return CHUNK_ITEMS; }
+    public static Map<String, DeferredItem<Item>> getAllHoneycombItems() { return HONEYCOMB_ITEMS; }
     public static Map<String, DeferredItem<Item>> getAllSaplingItems() { return SAPLING_ITEMS; }
 
     public static void register(IEventBus eventBus) {

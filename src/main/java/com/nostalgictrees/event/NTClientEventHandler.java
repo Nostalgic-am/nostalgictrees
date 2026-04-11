@@ -2,6 +2,7 @@ package com.nostalgictrees.event;
 
 import com.nostalgictrees.NTBlocks;
 import com.nostalgictrees.NostalgicTrees;
+import com.nostalgictrees.client.ResourceBeehiveScreen;
 import com.nostalgictrees.data.NTTreeRegistry;
 import com.nostalgictrees.data.ResourceTreeType;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -11,6 +12,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 @EventBusSubscriber(modid = NostalgicTrees.MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public class NTClientEventHandler {
@@ -30,5 +32,10 @@ public class NTClientEventHandler {
                 }
             }
         });
+    }
+
+    @SubscribeEvent
+    public static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(NTBlocks.RESOURCE_BEEHIVE_MENU.get(), ResourceBeehiveScreen::new);
     }
 }

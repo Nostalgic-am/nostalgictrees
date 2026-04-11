@@ -17,8 +17,6 @@ public class NTColorHandler {
 
     @SubscribeEvent
     public static void onBlockColors(RegisterColorHandlersEvent.Block event) {
-        NostalgicTrees.LOGGER.info("NTColorHandler: Registering BLOCK colors...");
-        int count = 0;
         for (ResourceTreeType tree : NTTreeRegistry.getAllTrees()) {
             int c = tree.color() | 0xFF000000;
             String n = tree.name();
@@ -28,21 +26,18 @@ public class NTColorHandler {
                 Block leaves = NTBlocks.getLeavesBlock(n);
                 Block sapling = NTBlocks.getSaplingBlock(n);
 
-                if (log != null) { event.register((s,l,p,t) -> c, log); count++; }
-                if (stripped != null) { event.register((s,l,p,t) -> c, stripped); count++; }
-                if (leaves != null) { event.register((s,l,p,t) -> c, leaves); count++; }
-                if (sapling != null) { event.register((s,l,p,t) -> c, sapling); count++; }
+                if (log != null) event.register((s,l,p,t) -> c, log);
+                if (stripped != null) event.register((s,l,p,t) -> c, stripped);
+                if (leaves != null) event.register((s,l,p,t) -> c, leaves);
+                if (sapling != null) event.register((s,l,p,t) -> c, sapling);
             } catch (Exception e) {
                 NostalgicTrees.LOGGER.error("Block color registration FAILED for: {}", n, e);
             }
         }
-        NostalgicTrees.LOGGER.info("NTColorHandler: Registered {} BLOCK color handlers", count);
     }
 
     @SubscribeEvent
     public static void onItemColors(RegisterColorHandlersEvent.Item event) {
-        NostalgicTrees.LOGGER.info("NTColorHandler: Registering ITEM colors...");
-        int count = 0;
         for (ResourceTreeType tree : NTTreeRegistry.getAllTrees()) {
             int c = tree.color() | 0xFF000000;
             String n = tree.name();
@@ -54,16 +49,19 @@ public class NTColorHandler {
                 Item apple = NTItems.getAppleItem(n);
                 Item chunk = NTItems.getChunkItem(n);
 
-                if (log != null) { event.register((s,t) -> c, log.asItem()); count++; }
-                if (stripped != null) { event.register((s,t) -> c, stripped.asItem()); count++; }
-                if (leaves != null) { event.register((s,t) -> c, leaves.asItem()); count++; }
-                if (sapling != null) { event.register((s,t) -> c, sapling.asItem()); count++; }
-                if (apple != null) { event.register((s,t) -> c, apple); count++; }
-                if (chunk != null) { event.register((s,t) -> c, chunk); count++; }
+                if (log != null) event.register((s,t) -> c, log.asItem());
+                if (stripped != null) event.register((s,t) -> c, stripped.asItem());
+                if (leaves != null) event.register((s,t) -> c, leaves.asItem());
+                if (sapling != null) event.register((s,t) -> c, sapling.asItem());
+                if (apple != null) event.register((s,t) -> c, apple);
+                if (chunk != null) event.register((s,t) -> c, chunk);
+
+                // Honeycomb tinting
+                var honeycombDef = NTItems.getAllHoneycombItems().get(n);
+                if (honeycombDef != null) event.register((s,t) -> c, honeycombDef.get());
             } catch (Exception e) {
                 NostalgicTrees.LOGGER.error("Item color registration FAILED for: {}", n, e);
             }
         }
-        NostalgicTrees.LOGGER.info("NTColorHandler: Registered {} ITEM color handlers", count);
     }
 }

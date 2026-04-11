@@ -60,11 +60,14 @@ public class DynamicResourceGenerator {
             JsonArray resourceSaplingsTag = new JsonArray();
             JsonArray applesTag = new JsonArray();
             JsonArray chunksTag = new JsonArray();
+            JsonArray honeycombsTag = new JsonArray();
 
             // Lang
             JsonObject langObj = new JsonObject();
             langObj.addProperty("itemGroup.nostalgictrees", "Nostalgic Trees");
             langObj.addProperty("gui.nostalgictrees.mallet_processing", "Mallet Processing");
+            langObj.addProperty("block." + MODID + ".resource_beehive", "Resource Beehive");
+            langObj.addProperty("gui.nostalgictrees.resource_beehive", "Resource Beehive");
             for (String tier : new String[]{"wooden", "stone", "iron", "golden", "diamond", "netherite"}) {
                 langObj.addProperty("item." + MODID + "." + tier + "_mallet", cap(tier) + " Mallet");
             }
@@ -80,6 +83,7 @@ public class DynamicResourceGenerator {
                 langObj.addProperty("block." + MODID + "." + n + "_sapling", d + " Sapling");
                 langObj.addProperty("item." + MODID + "." + n + "_apple", d + " Apple");
                 langObj.addProperty("item." + MODID + "." + n + "_chunk", d + " Chunk");
+                langObj.addProperty("item." + MODID + "." + n + "_honeycomb", d + " Honeycomb");
 
                 // Blockstates
                 writeBlockstate(blockstates, n + "_log", MODID + ":block/nt_log", null);
@@ -94,6 +98,7 @@ public class DynamicResourceGenerator {
                 writeParent(itemModels, n + "_sapling", MODID + ":item/nt_sapling");
                 writeGenerated(itemModels, n + "_apple", MODID + ":item/base_apple");
                 writeGenerated(itemModels, n + "_chunk", MODID + ":item/base_chunk");
+                writeGenerated(itemModels, n + "_honeycomb", MODID + ":item/base_honeycomb");
 
                 // Loot tables
                 writeLeavesLoot(lootTables, n);
@@ -118,6 +123,7 @@ public class DynamicResourceGenerator {
                 resourceSaplingsTag.add(MODID + ":" + n + "_sapling");
                 applesTag.add(MODID + ":" + n + "_apple");
                 chunksTag.add(MODID + ":" + n + "_chunk");
+                honeycombsTag.add(MODID + ":" + n + "_honeycomb");
             }
 
             // Write lang
@@ -127,6 +133,8 @@ public class DynamicResourceGenerator {
             writeTag(tagsBlock.resolve("logs.json"), logsTag);
             writeTag(tagsBlock.resolve("leaves.json"), leavesTag);
             writeTag(tagsBlock.resolve("saplings.json"), saplingsTag);
+            // Add saplings as flowers so vanilla bees pollinate them
+            writeTag(tagsBlock.resolve("flowers.json"), saplingsTag);
             writeTag(tagsMineable.resolve("axe.json"), axeTag);
             writeTag(tagsMineable.resolve("hoe.json"), hoeTag);
             writeTag(modTagsBlock.resolve("resource_logs.json"), resourceLogsTag);
@@ -135,6 +143,30 @@ public class DynamicResourceGenerator {
             writeTag(modTagsBlock.resolve("resource_saplings.json"), resourceSaplingsTag);
             writeTag(modTagsItem.resolve("resource_apples.json"), applesTag);
             writeTag(modTagsItem.resolve("resource_chunks.json"), chunksTag);
+            writeTag(modTagsItem.resolve("resource_honeycombs.json"), honeycombsTag);
+
+            // Beehive blockstate (uses honey_level 0-5)
+            writeBeehiveBlockstate(blockstates);
+            // Beehive block model
+            writeBeehiveModel(blockModels);
+            // Beehive item model
+            writeParent(itemModels, "resource_beehive", MODID + ":block/resource_beehive");
+            // Beehive loot table
+            writeSimpleLoot(lootTables, "resource_beehive", MODID + ":resource_beehive");
+
+            // Add resource_beehive to minecraft:beehives tag so bees recognize it
+            JsonArray beehivesTag = new JsonArray();
+            beehivesTag.add(MODID + ":resource_beehive");
+            writeTag(tagsBlock.resolve("beehives.json"), beehivesTag);
+
+            // Add our POI to the bee_home tag so BeeLocateHiveGoal can find it
+            Path poiTags = root.resolve("data/minecraft/tags/point_of_interest_type");
+            Files.createDirectories(poiTags);
+            JsonArray beeHomeTag = new JsonArray();
+            beeHomeTag.add(MODID + ":resource_beehive");
+            writeTag(poiTags.resolve("bee_home.json"), beeHomeTag);
+
+            // Mallets tag (static)
 
             // Mallets tag (static)
             JsonArray malletsArr = new JsonArray();
@@ -349,6 +381,52 @@ public class DynamicResourceGenerator {
         o.addProperty("replace", false);
         o.add("values", values);
         writeJson(file, o);
+    }
+
+    private static void writeBeehiveBlockstate(Path dir) throws IOException {
+        // Orientable block with FACING property
+        JsonObject root = new JsonObject();
+        JsonObject variants = new JsonObject();
+
+        String model = MODID + ":block/resource_beehive";
+
+        JsonObject north = new JsonObject();
+        north.addProperty("model", model);
+        variants.add("facing=north", north);
+
+        JsonObject south = new JsonObject();
+        south.addProperty("model", model);
+        south.addProperty("y", 180);
+        variants.add("facing=south", south);
+
+        JsonObject west = new JsonObject();
+        west.addProperty("model", model);
+        west.addProperty("y", 270);
+        variants.add("facing=west", west);
+
+        JsonObject east = new JsonObject();
+        east.addProperty("model", model);
+        east.addProperty("y", 90);
+        variants.add("facing=east", east);
+
+        root.add("variants", variants);
+        writeJson(dir.resolve("resource_beehive.json"), root);
+    }
+
+    private static void writeBeehiveModel(Path dir) throws IOException {
+        // Use vanilla bee_nest textures for front/side/top
+        String model = """
+        {
+          "parent": "minecraft:block/orientable_with_bottom",
+          "textures": {
+            "top": "minecraft:block/bee_nest_top",
+            "side": "minecraft:block/bee_nest_side",
+            "front": "minecraft:block/bee_nest_front",
+            "bottom": "minecraft:block/bee_nest_bottom"
+          }
+        }
+        """;
+        Files.writeString(dir.resolve("resource_beehive.json"), model);
     }
 
     private static void writeJson(Path path, JsonObject obj) throws IOException {

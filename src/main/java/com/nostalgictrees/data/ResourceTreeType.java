@@ -17,4 +17,5 @@ public record ResourceTreeType(
     public String leavesId() { return name + "_leaves"; }
     public String appleId() { return name + "_apple"; }
     public String chunkId() { return name + "_chunk"; }
+    public String honeycombId() { return name + "_honeycomb"; }
 }
