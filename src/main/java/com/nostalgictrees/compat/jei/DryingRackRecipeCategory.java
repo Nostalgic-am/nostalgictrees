@@ -2,6 +2,7 @@ package com.nostalgictrees.compat.jei;
 
 import com.nostalgictrees.NTItems;
 import com.nostalgictrees.NostalgicTrees;
+import com.nostalgictrees.recipe.DryingRecipe;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -13,10 +14,10 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
-public class DryingRackRecipeCategory implements IRecipeCategory<DryingRackRecipe> {
+public class DryingRackRecipeCategory implements IRecipeCategory<DryingRecipe> {
 
-    public static final RecipeType<DryingRackRecipe> RECIPE_TYPE =
-            RecipeType.create(NostalgicTrees.MODID, "drying_rack", DryingRackRecipe.class);
+    public static final RecipeType<DryingRecipe> RECIPE_TYPE =
+            RecipeType.create(NostalgicTrees.MODID, "drying_rack", DryingRecipe.class);
 
     private final IDrawable background;
     private final IDrawable icon;
@@ -30,7 +31,7 @@ public class DryingRackRecipeCategory implements IRecipeCategory<DryingRackRecip
     }
 
     @Override
-    public RecipeType<DryingRackRecipe> getRecipeType() {
+    public RecipeType<DryingRecipe> getRecipeType() {
         return RECIPE_TYPE;
     }
 
@@ -50,17 +51,20 @@ public class DryingRackRecipeCategory implements IRecipeCategory<DryingRackRecip
     }
 
     @Override
-    public void setRecipe(IRecipeLayoutBuilder builder, DryingRackRecipe recipe, IFocusGroup focuses) {
+    public void setRecipe(IRecipeLayoutBuilder builder, DryingRecipe recipe, IFocusGroup focuses) {
         // Input on the left
         builder.addSlot(RecipeIngredientRole.INPUT, 1, 9)
-                .addItemStack(recipe.input());
+                .addItemStack(recipe.getInputStack());
 
         // Drying rack as catalyst in the middle
         builder.addSlot(RecipeIngredientRole.CATALYST, 50, 9)
-                .addItemStack(new ItemStack(NTItems.DRYING_RACK_ITEM.get()));
+                .addItemStack(new ItemStack(NTItems.DRYING_RACK_ITEM.get()))
+                .addTooltipCallback((recipeSlotView, tooltip) -> {
+                    tooltip.add(Component.literal(String.format("%.1f seconds", recipe.getDryingTime() / 20.0)));
+                });
 
         // Output on the right
         builder.addSlot(RecipeIngredientRole.OUTPUT, 99, 9)
-                .addItemStack(recipe.output());
+                .addItemStack(recipe.getOutputStack());
     }
 }

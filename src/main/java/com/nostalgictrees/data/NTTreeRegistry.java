@@ -58,6 +58,7 @@ public class NTTreeRegistry {
         w(dir,"gravel","tier_1","minecraft:gravel",4,"7E7A73");
         w(dir,"clay","tier_1","minecraft:clay_ball",4,"9EA4B0");
         w(dir,"bone","tier_1","minecraft:bone",2,"E3DAC2");
+        w(dir,"ice","tier_2","minecraft:ice",2,"A5D6F5");
         w(dir,"coal","tier_2","minecraft:coal",2,"2C2C2C");
         w(dir,"copper","tier_2","minecraft:raw_copper",2,"C06840");
         w(dir,"iron","tier_3","minecraft:raw_iron",1,"C9A78B");

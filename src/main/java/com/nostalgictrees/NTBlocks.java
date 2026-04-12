@@ -7,6 +7,7 @@ import com.nostalgictrees.block.ResourceLogBlock;
 import com.nostalgictrees.block.ResourceSaplingBlock;
 import com.nostalgictrees.block.entity.DryingRackBlockEntity;
 import com.nostalgictrees.block.entity.ResourceBeehiveBlockEntity;
+import com.nostalgictrees.block.entity.ResourceSaplingBlockEntity;
 import com.nostalgictrees.data.NTTreeRegistry;
 import com.nostalgictrees.data.ResourceTreeType;
 import com.nostalgictrees.menu.ResourceBeehiveMenu;
@@ -83,6 +84,13 @@ public class NTBlocks {
             registerTreeBlocks(tree);
         }
     }
+
+    // === Sapling Block Entity (registered after all saplings are created) ===
+    public static final Supplier<BlockEntityType<ResourceSaplingBlockEntity>> SAPLING_BE =
+            BLOCK_ENTITY_TYPES.register("resource_sapling",
+                    () -> BlockEntityType.Builder.of(ResourceSaplingBlockEntity::new,
+                            SAPLING_BLOCKS.values().stream().map(DeferredBlock::get).toArray(Block[]::new)
+                    ).build(null));
 
     private static void registerTreeBlocks(ResourceTreeType tree) {
         String name = tree.name();

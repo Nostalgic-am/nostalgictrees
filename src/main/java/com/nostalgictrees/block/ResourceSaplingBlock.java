@@ -2,29 +2,36 @@ package com.nostalgictrees.block;
 
 import com.mojang.serialization.MapCodec;
 import com.nostalgictrees.NTBlocks;
+import com.nostalgictrees.NTItems;
+import com.nostalgictrees.block.entity.ResourceSaplingBlockEntity;
 import com.nostalgictrees.data.TreeTier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.BonemealableBlock;
-import net.minecraft.world.level.block.BushBlock;
-import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.Nullable;
 
-public class ResourceSaplingBlock extends BushBlock implements BonemealableBlock {
+public class ResourceSaplingBlock extends BaseEntityBlock implements BonemealableBlock {
     public static final MapCodec<ResourceSaplingBlock> CODEC = simpleCodec(p -> new ResourceSaplingBlock("", TreeTier.TIER_1));
 
     @Override
-    protected MapCodec<? extends BushBlock> codec() {
+    protected MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
 
@@ -47,6 +54,57 @@ public class ResourceSaplingBlock extends BushBlock implements BonemealableBlock
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
+
+    @Override
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
+    }
+
+    // ======================== BLOCK ENTITY ========================
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new ResourceSaplingBlockEntity(pos, state);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        if (level.isClientSide()) return null;
+        return createTickerHelper(type, NTBlocks.SAPLING_BE.get(),
+                ResourceSaplingBlockEntity::serverTick);
+    }
+
+    // ======================== HONEYCOMB INTERACTION ========================
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (level.isClientSide()) return ItemInteractionResult.SUCCESS;
+
+        if (!stack.isEmpty()) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof ResourceSaplingBlockEntity saplingBE) {
+                if (saplingBE.tryApplyHoneycomb(stack)) {
+                    return ItemInteractionResult.SUCCESS;
+                }
+            }
+        }
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    // ======================== BUSH BEHAVIOR ========================
+
+    protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
+        return state.is(BlockTags.DIRT) || state.is(Blocks.FARMLAND);
+    }
+    protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
+        BlockPos below = pos.below();
+        return mayPlaceOn(level.getBlockState(below), level, below);
+    }
+
+    // ======================== TREE GROWTH ========================
 
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
@@ -120,6 +178,8 @@ public class ResourceSaplingBlock extends BushBlock implements BonemealableBlock
         }
     }
 
+    // ======================== BONEMEALABLE ========================
+
     @Override
     public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
         return true;
@@ -134,6 +194,8 @@ public class ResourceSaplingBlock extends BushBlock implements BonemealableBlock
     public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
         growTree(level, pos, random);
     }
+
+    // ======================== GETTERS ========================
 
     public String getTreeName() { return treeName; }
     public TreeTier getTier() { return tier; }

@@ -175,6 +175,12 @@ public class DynamicResourceGenerator {
             // === Tier 1 Sapling Recipes ===
             writeTier1SaplingRecipes(recipes);
 
+            // === Drying Rack Recipes (vanilla recipe type) ===
+            writeDryingRecipes(recipes);
+
+            // === Mutation Recipes (Tier 2+) ===
+            writeMutationRecipes(recipes);
+
             NostalgicTrees.LOGGER.info("Generated all dynamic resources successfully");
         } catch (Exception e) {
             NostalgicTrees.LOGGER.error("Failed to generate dynamic resources!", e);
@@ -441,6 +447,7 @@ public class DynamicResourceGenerator {
         // Lang
         langObj.addProperty("block." + MODID + ".drying_rack", "Drying Rack");
         langObj.addProperty("gui.nostalgictrees.drying_rack", "Drying Rack");
+        langObj.addProperty("gui.nostalgictrees.mutation", "Bee Mutation");
 
         // Blockstate with facing variants
         JsonObject bs = new JsonObject();
@@ -571,6 +578,16 @@ public class DynamicResourceGenerator {
         writeSurroundRecipe(recipes, "bone_sapling",
                 "minecraft:bone_meal", MODID + ":sand_sapling",
                 MODID + ":bone_sapling");
+
+        // 7. Coal Sapling: clay sapling surrounded by charcoal
+        writeSurroundRecipe(recipes, "coal_sapling",
+                "minecraft:charcoal", MODID + ":clay_sapling",
+                MODID + ":coal_sapling");
+
+        // 8. Ice Sapling: bone sapling surrounded by snowballs
+        writeSurroundRecipe(recipes, "ice_sapling",
+                "minecraft:snowball", MODID + ":bone_sapling",
+                MODID + ":ice_sapling");
     }
 
     private static void writeSurroundRecipe(Path dir, String name, String surrounding, String center, String output) throws IOException {
@@ -608,6 +625,67 @@ public class DynamicResourceGenerator {
         o.add("result", result);
         o.addProperty("experience", 0.1);
         o.addProperty("cookingtime", 200);
+        writeJson(dir.resolve(name + ".json"), o);
+    }
+
+    // ======================== DRYING RACK RECIPES ========================
+
+    private static void writeDryingRecipes(Path recipes) throws IOException {
+        // Dirt Sapling → Stone Sapling (30 seconds)
+        writeDryingRecipe(recipes, "dirt_to_stone_sapling",
+                MODID + ":dirt_sapling", MODID + ":stone_sapling", 1, 600);
+
+        // Clay Ball → Bone Meal (30 seconds)
+        writeDryingRecipe(recipes, "clay_ball_to_bone_meal",
+                "minecraft:clay_ball", "minecraft:bone_meal", 1, 600);
+
+        // Bone Block → Snow Block (30 seconds)
+        writeDryingRecipe(recipes, "bone_block_to_snow_block",
+                "minecraft:bone_block", "minecraft:snow_block", 1, 600);
+    }
+
+    private static void writeDryingRecipe(Path dir, String name, String input, String output,
+                                           int outputCount, int dryingTime) throws IOException {
+        JsonObject o = new JsonObject();
+        o.addProperty("type", MODID + ":drying");
+        o.addProperty("input", input);
+        o.addProperty("output", output);
+        o.addProperty("output_count", outputCount);
+        o.addProperty("drying_time", dryingTime);
+        writeJson(dir.resolve(name + ".json"), o);
+    }
+
+    // ======================== MUTATION RECIPES ========================
+
+    private static void writeMutationRecipes(Path recipes) throws IOException {
+        Path mutationDir = recipes;
+        // Define mutations that require honeycombs + bee pollination
+
+        // Copper Sapling: coal + bone honeycombs a sapling
+        writeMutationRecipe(mutationDir, "copper_mutation",
+                MODID + ":clay_sapling",
+                new String[]{MODID + ":coal_honeycomb", MODID + ":bone_honeycomb"},
+                MODID + ":copper_sapling", 3);
+
+        // Iron Sapling: coal + copper honeycombs a sapling
+        writeMutationRecipe(mutationDir, "iron_mutation",
+                MODID + ":clay_sapling",
+                new String[]{MODID + ":coal_honeycomb", MODID + ":copper_honeycomb"},
+                MODID + ":iron_sapling", 5);
+    }
+
+    private static void writeMutationRecipe(Path dir, String name, String baseSapling,
+                                             String[] honeycombs, String result, int pollinations) throws IOException {
+        JsonObject o = new JsonObject();
+        o.addProperty("type", MODID + ":mutation");
+        o.addProperty("base_sapling", baseSapling);
+        JsonArray combsArray = new JsonArray();
+        for (String comb : honeycombs) {
+            combsArray.add(comb);
+        }
+        o.add("honeycombs", combsArray);
+        o.addProperty("result", result);
+        o.addProperty("pollinations_required", pollinations);
         writeJson(dir.resolve(name + ".json"), o);
     }
 }

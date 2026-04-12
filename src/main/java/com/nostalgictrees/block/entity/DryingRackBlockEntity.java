@@ -1,89 +1,40 @@
 package com.nostalgictrees.block.entity;
 
 import com.nostalgictrees.NTBlocks;
-import com.nostalgictrees.NTItems;
-import com.nostalgictrees.NostalgicTrees;
+import com.nostalgictrees.NTRecipes;
+import com.nostalgictrees.recipe.DryingRecipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.Supplier;
+import java.util.List;
 
 /**
  * Drying Rack Block Entity.
  *
  * Holds one item and transforms it over time.
- * Recipes are registered as input → (output, ticks) pairs.
+ * Recipes are loaded from the vanilla recipe manager (type: nostalgictrees:drying).
  */
 public class DryingRackBlockEntity extends BlockEntity {
 
     private ItemStack storedItem = ItemStack.EMPTY;
     private int dryingProgress = 0;
     private int dryingTimeRequired = 0;
-
-    // Drying recipes: input item → (output supplier, time in ticks)
-    // Using suppliers because items may not be registered at static init time
-    private static final Map<DryingRecipe, Boolean> RECIPES_INITIALIZED = new LinkedHashMap<>();
-    private static java.util.List<DryingRecipe> RECIPES = null;
-
-    public static class DryingRecipe {
-        public final Supplier<ItemStack> input;
-        public final Supplier<ItemStack> output;
-        public final int ticks;
-
-        public DryingRecipe(Supplier<ItemStack> input, Supplier<ItemStack> output, int ticks) {
-            this.input = input;
-            this.output = output;
-            this.ticks = ticks;
-        }
-    }
-
-    public static java.util.List<DryingRecipe> getRecipes() {
-        if (RECIPES == null) {
-            RECIPES = new java.util.ArrayList<>();
-
-            // Dirt Sapling → Stone Sapling (30 seconds)
-            RECIPES.add(new DryingRecipe(
-                    () -> getSaplingStack("dirt"),
-                    () -> getSaplingStack("stone"),
-                    600
-            ));
-
-            // Clay Ball → Bone Meal (20 seconds)
-            RECIPES.add(new DryingRecipe(
-                    () -> new ItemStack(Items.CLAY_BALL),
-                    () -> new ItemStack(Items.BONE_MEAL),
-                    600
-            ));
-            RECIPES.add(new DryingRecipe(
-                    () -> new ItemStack(Items.BONE_BLOCK),
-                    () -> new ItemStack(Items.SNOW_BLOCK),
-                    600
-            ));
-        }
-        return RECIPES;
-    }
-
-    private static ItemStack getSaplingStack(String treeName) {
-        var saplingItems = NTItems.getAllSaplingItems();
-        var item = saplingItems.get(treeName);
-        return item != null ? new ItemStack(item.get()) : ItemStack.EMPTY;
-    }
 
     public DryingRackBlockEntity(BlockPos pos, BlockState state) {
         super(NTBlocks.DRYING_RACK_BE.get(), pos, state);
@@ -94,11 +45,11 @@ public class DryingRackBlockEntity extends BlockEntity {
     public static void serverTick(Level level, BlockPos pos, BlockState state, DryingRackBlockEntity be) {
         if (be.storedItem.isEmpty()) return;
 
-        // Find matching recipe
+        // Find matching recipe from recipe manager
         DryingRecipe recipe = be.findRecipe();
         if (recipe == null) return;
 
-        be.dryingTimeRequired = recipe.ticks;
+        be.dryingTimeRequired = recipe.getDryingTime();
         be.dryingProgress++;
 
         // Spawn occasional particles
@@ -110,7 +61,7 @@ public class DryingRackBlockEntity extends BlockEntity {
 
         if (be.dryingProgress >= be.dryingTimeRequired) {
             // Transform the item
-            be.storedItem = recipe.output.get().copy();
+            be.storedItem = recipe.getOutputStack().copy();
             be.dryingProgress = 0;
             be.dryingTimeRequired = 0;
             be.setChanged();
@@ -123,10 +74,18 @@ public class DryingRackBlockEntity extends BlockEntity {
         }
     }
 
+    @Nullable
     private DryingRecipe findRecipe() {
-        for (DryingRecipe recipe : getRecipes()) {
-            ItemStack input = recipe.input.get();
-            if (!input.isEmpty() && ItemStack.isSameItem(storedItem, input)) {
+        if (level == null) return null;
+
+        ResourceLocation storedItemId = BuiltInRegistries.ITEM.getKey(storedItem.getItem());
+
+        List<RecipeHolder<DryingRecipe>> recipes = level.getRecipeManager()
+                .getAllRecipesFor(NTRecipes.DRYING_TYPE.get());
+
+        for (RecipeHolder<DryingRecipe> holder : recipes) {
+            DryingRecipe recipe = holder.value();
+            if (recipe.getInputItem().equals(storedItemId)) {
                 return recipe;
             }
         }
