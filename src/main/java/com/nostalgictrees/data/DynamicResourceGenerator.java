@@ -126,14 +126,16 @@ public class DynamicResourceGenerator {
                 honeycombsTag.add(MODID + ":" + n + "_honeycomb");
             }
 
-            // Write lang
+            // === Drying Rack (MUST be before lang write so name is included) ===
+            writeDryingRackResources(blockstates, blockModels, itemModels, lootTables, recipes, langObj);
+
+            // Write lang (after all lang entries have been added)
             writeJson(lang.resolve("en_us.json"), langObj);
 
             // Write all tags
             writeTag(tagsBlock.resolve("logs.json"), logsTag);
             writeTag(tagsBlock.resolve("leaves.json"), leavesTag);
             writeTag(tagsBlock.resolve("saplings.json"), saplingsTag);
-            // Add saplings as flowers so vanilla bees pollinate them
             writeTag(tagsBlock.resolve("flowers.json"), saplingsTag);
             writeTag(tagsMineable.resolve("axe.json"), axeTag);
             writeTag(tagsMineable.resolve("hoe.json"), hoeTag);
@@ -145,30 +147,23 @@ public class DynamicResourceGenerator {
             writeTag(modTagsItem.resolve("resource_chunks.json"), chunksTag);
             writeTag(modTagsItem.resolve("resource_honeycombs.json"), honeycombsTag);
 
-            // Beehive blockstate (uses honey_level 0-5)
+            // Beehive blockstate
             writeBeehiveBlockstate(blockstates);
-            // Beehive block model
             writeBeehiveModel(blockModels);
-            // Beehive item model
             writeParent(itemModels, "resource_beehive", MODID + ":block/resource_beehive");
-            // Beehive loot table
             writeSimpleLoot(lootTables, "resource_beehive", MODID + ":resource_beehive");
 
-            // Add resource_beehive to minecraft:beehives tag so bees recognize it
             JsonArray beehivesTag = new JsonArray();
             beehivesTag.add(MODID + ":resource_beehive");
             writeTag(tagsBlock.resolve("beehives.json"), beehivesTag);
 
-            // Add our POI to the bee_home tag so BeeLocateHiveGoal can find it
             Path poiTags = root.resolve("data/minecraft/tags/point_of_interest_type");
             Files.createDirectories(poiTags);
             JsonArray beeHomeTag = new JsonArray();
             beeHomeTag.add(MODID + ":resource_beehive");
             writeTag(poiTags.resolve("bee_home.json"), beeHomeTag);
 
-            // Mallets tag (static)
-
-            // Mallets tag (static)
+            // Mallets tag
             JsonArray malletsArr = new JsonArray();
             for (String t : new String[]{"wooden","stone","iron","golden","diamond","netherite"})
                 malletsArr.add(MODID + ":" + t + "_mallet");
@@ -176,6 +171,9 @@ public class DynamicResourceGenerator {
 
             // Mallet recipes
             writeMalletRecipes(recipes);
+
+            // === Tier 1 Sapling Recipes ===
+            writeTier1SaplingRecipes(recipes);
 
             NostalgicTrees.LOGGER.info("Generated all dynamic resources successfully");
         } catch (Exception e) {
@@ -387,7 +385,6 @@ public class DynamicResourceGenerator {
     }
 
     private static void writeBeehiveBlockstate(Path dir) throws IOException {
-        // Orientable block with FACING property
         JsonObject root = new JsonObject();
         JsonObject variants = new JsonObject();
 
@@ -417,7 +414,6 @@ public class DynamicResourceGenerator {
     }
 
     private static void writeBeehiveModel(Path dir) throws IOException {
-        // Use vanilla bee_nest textures for front/side/top
         String model = """
         {
           "parent": "minecraft:block/orientable_with_bottom",
@@ -437,4 +433,181 @@ public class DynamicResourceGenerator {
     }
 
     private static String cap(String s) { return s.substring(0, 1).toUpperCase() + s.substring(1); }
+
+    // ======================== DRYING RACK ========================
+
+    private static void writeDryingRackResources(Path blockstates, Path blockModels, Path itemModels,
+                                                 Path lootTables, Path recipes, JsonObject langObj) throws IOException {
+        // Lang
+        langObj.addProperty("block." + MODID + ".drying_rack", "Drying Rack");
+        langObj.addProperty("gui.nostalgictrees.drying_rack", "Drying Rack");
+
+        // Blockstate with facing variants
+        JsonObject bs = new JsonObject();
+        JsonObject variants = new JsonObject();
+        String rackModel = MODID + ":block/drying_rack";
+
+        JsonObject north = new JsonObject();
+        north.addProperty("model", rackModel);
+        variants.add("facing=north", north);
+
+        JsonObject south = new JsonObject();
+        south.addProperty("model", rackModel);
+        south.addProperty("y", 180);
+        variants.add("facing=south", south);
+
+        JsonObject west = new JsonObject();
+        west.addProperty("model", rackModel);
+        west.addProperty("y", 270);
+        variants.add("facing=west", west);
+
+        JsonObject east = new JsonObject();
+        east.addProperty("model", rackModel);
+        east.addProperty("y", 90);
+        variants.add("facing=east", east);
+
+        bs.add("variants", variants);
+        writeJson(blockstates.resolve("drying_rack.json"), bs);
+
+        // Block model — wall-mounted shelf extending outward from north wall
+        String model = """
+        {
+          "parent": "minecraft:block/block",
+          "textures": {
+            "planks": "minecraft:block/oak_planks",
+            "particle": "minecraft:block/oak_planks"
+          },
+          "elements": [
+            {
+              "from": [0, 14, 0],
+              "to": [16, 16, 4],
+              "faces": {
+                "north": {"texture": "#planks"},
+                "south": {"texture": "#planks"},
+                "west":  {"texture": "#planks"},
+                "east":  {"texture": "#planks"},
+                "up":    {"texture": "#planks"},
+                "down":  {"texture": "#planks"}
+              }
+            }
+          ]
+        }
+        """;
+        Files.writeString(blockModels.resolve("drying_rack.json"), model);
+
+        // Item model
+        writeParent(itemModels, "drying_rack", MODID + ":block/drying_rack");
+
+        // Loot table
+        writeSimpleLoot(lootTables, "drying_rack", MODID + ":drying_rack");
+
+        // Crafting recipe: 3 planks top + 2 sticks below
+        JsonObject recipe = new JsonObject();
+        recipe.addProperty("type", "minecraft:crafting_shaped");
+        JsonArray pattern = new JsonArray();
+        pattern.add("PPP");
+        pattern.add("S S");
+        recipe.add("pattern", pattern);
+        JsonObject key = new JsonObject();
+        JsonObject p = new JsonObject();
+        p.addProperty("item", "minecraft:oak_planks");
+        key.add("P", p);
+        JsonObject s = new JsonObject();
+        s.addProperty("item", "minecraft:stick");
+        key.add("S", s);
+        recipe.add("key", key);
+        JsonObject rackResult = new JsonObject();
+        rackResult.addProperty("id", MODID + ":drying_rack");
+        rackResult.addProperty("count", 1);
+        recipe.add("result", rackResult);
+        writeJson(recipes.resolve("drying_rack.json"), recipe);
+    }
+
+    // ======================== TIER 1 SAPLING RECIPES ========================
+
+    private static void writeTier1SaplingRecipes(Path recipes) throws IOException {
+        // 1. Dirt Sapling: 8 dirt + oak sapling center
+        writeSurroundRecipe(recipes, "dirt_sapling",
+                "minecraft:dirt", "minecraft:oak_sapling",
+                MODID + ":dirt_sapling");
+
+        // 2. Stone Sapling: Dirt Sapling on drying rack (handled in DryingRackBlockEntity)
+
+        // 3. Gravel Sapling: Smelt stone sapling
+        writeSmeltingRecipe(recipes, "gravel_sapling_from_smelting",
+                MODID + ":stone_sapling", MODID + ":gravel_sapling");
+
+        // 4. Sand Sapling: Smelt gravel sapling
+        writeSmeltingRecipe(recipes, "sand_sapling_from_smelting",
+                MODID + ":gravel_sapling", MODID + ":sand_sapling");
+
+        // 5. Clay Sapling: Dirt, Stone, Gravel, Sand saplings in + around oak sapling
+        JsonObject clay = new JsonObject();
+        clay.addProperty("type", "minecraft:crafting_shaped");
+        JsonArray clayPattern = new JsonArray();
+        clayPattern.add(" D ");
+        clayPattern.add("SOG");
+        clayPattern.add(" A ");
+        clay.add("pattern", clayPattern);
+        JsonObject clayKey = new JsonObject();
+        JsonObject d = new JsonObject(); d.addProperty("item", MODID + ":dirt_sapling");
+        clayKey.add("D", d);
+        JsonObject st = new JsonObject(); st.addProperty("item", MODID + ":stone_sapling");
+        clayKey.add("S", st);
+        JsonObject o = new JsonObject(); o.addProperty("item", "minecraft:oak_sapling");
+        clayKey.add("O", o);
+        JsonObject g = new JsonObject(); g.addProperty("item", MODID + ":gravel_sapling");
+        clayKey.add("G", g);
+        JsonObject a = new JsonObject(); a.addProperty("item", MODID + ":sand_sapling");
+        clayKey.add("A", a);
+        clay.add("key", clayKey);
+        JsonObject clayResult = new JsonObject();
+        clayResult.addProperty("id", MODID + ":clay_sapling");
+        clayResult.addProperty("count", 1);
+        clay.add("result", clayResult);
+        writeJson(recipes.resolve("clay_sapling.json"), clay);
+
+        // 6. Bone Sapling: 8 bone meal + sand sapling center
+        writeSurroundRecipe(recipes, "bone_sapling",
+                "minecraft:bone_meal", MODID + ":sand_sapling",
+                MODID + ":bone_sapling");
+    }
+
+    private static void writeSurroundRecipe(Path dir, String name, String surrounding, String center, String output) throws IOException {
+        JsonObject o = new JsonObject();
+        o.addProperty("type", "minecraft:crafting_shaped");
+        JsonArray pattern = new JsonArray();
+        pattern.add("SSS");
+        pattern.add("SCS");
+        pattern.add("SSS");
+        o.add("pattern", pattern);
+        JsonObject key = new JsonObject();
+        JsonObject s = new JsonObject();
+        s.addProperty("item", surrounding);
+        key.add("S", s);
+        JsonObject c = new JsonObject();
+        c.addProperty("item", center);
+        key.add("C", c);
+        o.add("key", key);
+        JsonObject r = new JsonObject();
+        r.addProperty("id", output);
+        r.addProperty("count", 1);
+        o.add("result", r);
+        writeJson(dir.resolve(name + ".json"), o);
+    }
+
+    private static void writeSmeltingRecipe(Path dir, String name, String input, String output) throws IOException {
+        JsonObject o = new JsonObject();
+        o.addProperty("type", "minecraft:smelting");
+        JsonObject ingredient = new JsonObject();
+        ingredient.addProperty("item", input);
+        o.add("ingredient", ingredient);
+        JsonObject result = new JsonObject();
+        result.addProperty("id", output);
+        result.addProperty("count", 1);
+        o.add("result", result);
+        o.addProperty("experience", 0.1);
+        o.addProperty("cookingtime", 200);
+        writeJson(dir.resolve(name + ".json"), o);
+    }
 }

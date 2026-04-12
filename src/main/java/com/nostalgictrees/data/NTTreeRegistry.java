@@ -53,6 +53,7 @@ public class NTTreeRegistry {
 
     private static void writeDefaults(Path dir) {
         w(dir,"dirt","tier_1","minecraft:dirt",4,"8B5E2B");
+        w(dir,"stone","tier_1","minecraft:cobblestone",4,"7B7B7B");
         w(dir,"sand","tier_1","minecraft:sand",4,"DBD3A0");
         w(dir,"gravel","tier_1","minecraft:gravel",4,"7E7A73");
         w(dir,"clay","tier_1","minecraft:clay_ball",4,"9EA4B0");

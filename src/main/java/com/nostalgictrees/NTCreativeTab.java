@@ -32,6 +32,9 @@ public class NTCreativeTab {
                         // Resource Beehive
                         output.accept(NTItems.RESOURCE_BEEHIVE_ITEM.get());
 
+                        // Drying Rack
+                        output.accept(NTItems.DRYING_RACK_ITEM.get());
+
                         // Saplings
                         for (ResourceTreeType tree : NTTreeRegistry.getAllTrees()) {
                             var sapling = NTItems.getAllSaplingItems().get(tree.name());

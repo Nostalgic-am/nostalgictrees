@@ -1,9 +1,11 @@
 package com.nostalgictrees;
 
+import com.nostalgictrees.block.DryingRackBlock;
 import com.nostalgictrees.block.ResourceBeehiveBlock;
 import com.nostalgictrees.block.ResourceLeavesBlock;
 import com.nostalgictrees.block.ResourceLogBlock;
 import com.nostalgictrees.block.ResourceSaplingBlock;
+import com.nostalgictrees.block.entity.DryingRackBlockEntity;
 import com.nostalgictrees.block.entity.ResourceBeehiveBlockEntity;
 import com.nostalgictrees.data.NTTreeRegistry;
 import com.nostalgictrees.data.ResourceTreeType;
@@ -60,6 +62,15 @@ public class NTBlocks {
                             RESOURCE_BEEHIVE.get().getStateDefinition().getPossibleStates()
                                     .stream().collect(Collectors.toSet()),
                             0, 1));
+
+    // === Drying Rack ===
+    public static final DeferredBlock<Block> DRYING_RACK = BLOCKS.register("drying_rack",
+            DryingRackBlock::new);
+
+    public static final Supplier<BlockEntityType<DryingRackBlockEntity>> DRYING_RACK_BE =
+            BLOCK_ENTITY_TYPES.register("drying_rack",
+                    () -> BlockEntityType.Builder.of(DryingRackBlockEntity::new,
+                            DRYING_RACK.get()).build(null));
 
     // === Tree blocks ===
     private static final Map<String, DeferredBlock<Block>> LOG_BLOCKS = new HashMap<>();

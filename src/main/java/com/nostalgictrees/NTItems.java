@@ -35,6 +35,10 @@ public class NTItems {
     public static final DeferredItem<Item> RESOURCE_BEEHIVE_ITEM = ITEMS.register("resource_beehive",
             () -> new BlockItem(NTBlocks.RESOURCE_BEEHIVE.get(), new Item.Properties()));
 
+    // === Drying Rack block item ===
+    public static final DeferredItem<Item> DRYING_RACK_ITEM = ITEMS.register("drying_rack",
+            () -> new BlockItem(NTBlocks.DRYING_RACK.get(), new Item.Properties()));
+
     // === Tree-specific items (dynamic from config) ===
     private static final Map<String, DeferredItem<Item>> APPLE_ITEMS = new HashMap<>();
     private static final Map<String, DeferredItem<Item>> CHUNK_ITEMS = new HashMap<>();

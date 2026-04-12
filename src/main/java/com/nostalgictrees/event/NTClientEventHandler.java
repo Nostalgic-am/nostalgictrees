@@ -2,6 +2,7 @@ package com.nostalgictrees.event;
 
 import com.nostalgictrees.NTBlocks;
 import com.nostalgictrees.NostalgicTrees;
+import com.nostalgictrees.client.DryingRackRenderer;
 import com.nostalgictrees.client.ResourceBeehiveScreen;
 import com.nostalgictrees.data.NTTreeRegistry;
 import com.nostalgictrees.data.ResourceTreeType;
@@ -12,6 +13,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 @EventBusSubscriber(modid = NostalgicTrees.MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
@@ -31,11 +33,19 @@ public class NTClientEventHandler {
                     ItemBlockRenderTypes.setRenderLayer(leaves, RenderType.cutoutMipped());
                 }
             }
+
+            // Drying rack uses cutout for transparency
+            ItemBlockRenderTypes.setRenderLayer(NTBlocks.DRYING_RACK.get(), RenderType.cutout());
         });
     }
 
     @SubscribeEvent
     public static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(NTBlocks.RESOURCE_BEEHIVE_MENU.get(), ResourceBeehiveScreen::new);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(NTBlocks.DRYING_RACK_BE.get(), DryingRackRenderer::new);
     }
 }
