@@ -39,6 +39,10 @@ public class NTItems {
     public static final DeferredItem<Item> DRYING_RACK_ITEM = ITEMS.register("drying_rack",
             () -> new BlockItem(NTBlocks.DRYING_RACK.get(), new Item.Properties()));
 
+    // === RGB Dye ===
+    public static final DeferredItem<Item> RGB_DYE = ITEMS.register("rgb_dye",
+            () -> new Item(new Item.Properties()));
+
     // === Tree-specific items (dynamic from config) ===
     private static final Map<String, DeferredItem<Item>> APPLE_ITEMS = new HashMap<>();
     private static final Map<String, DeferredItem<Item>> CHUNK_ITEMS = new HashMap<>();

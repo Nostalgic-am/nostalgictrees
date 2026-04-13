@@ -52,25 +52,34 @@ public class NTTreeRegistry {
     }
 
     private static void writeDefaults(Path dir) {
+        // Tier 1 (crafting recipes)
         w(dir,"dirt","tier_1","minecraft:dirt",4,"8B5E2B");
         w(dir,"stone","tier_1","minecraft:cobblestone",4,"7B7B7B");
         w(dir,"sand","tier_1","minecraft:sand",4,"DBD3A0");
         w(dir,"gravel","tier_1","minecraft:gravel",4,"7E7A73");
         w(dir,"clay","tier_1","minecraft:clay_ball",4,"9EA4B0");
         w(dir,"bone","tier_1","minecraft:bone",2,"E3DAC2");
+        // Tier 2 (crafting + mutations)
         w(dir,"ice","tier_2","minecraft:ice",2,"A5D6F5");
+        w(dir,"rgb","tier_2","nostalgictrees:rgb_dye",4,"FFFFFF");
         w(dir,"coal","tier_2","minecraft:coal",2,"2C2C2C");
         w(dir,"copper","tier_2","minecraft:raw_copper",2,"C06840");
-        w(dir,"iron","tier_3","minecraft:raw_iron",1,"C9A78B");
+        w(dir,"iron","tier_2","minecraft:raw_iron",1,"C9A78B");
+        // Tier 3 (mutations, 5 pollinations)
         w(dir,"quartz","tier_3","minecraft:quartz",2,"E8DDD0");
         w(dir,"redstone","tier_3","minecraft:redstone",3,"A01010");
+        w(dir,"amethyst","tier_3","minecraft:amethyst_shard",2,"9B6BC4");
+        w(dir,"prismarine","tier_3","minecraft:prismarine_shard",2,"5B9E8F");
+        w(dir,"experience","tier_3","minecraft:experience_bottle",1,"A8E830");
+        // Tier 4 (mutations, 7 pollinations + catalyst)
         w(dir,"gold","tier_4","minecraft:raw_gold",1,"F5D63D");
         w(dir,"lapis","tier_4","minecraft:lapis_lazuli",2,"2546C4");
         w(dir,"glowstone","tier_4","minecraft:glowstone_dust",3,"C99E35");
+        // Tier 5 (mutations, 10 pollinations + catalyst)
         w(dir,"diamond","tier_5","minecraft:diamond",1,"59E5D4");
         w(dir,"emerald","tier_5","minecraft:emerald",1,"30C74D");
-        w(dir,"ender","tier_5","minecraft:ender_pearl",1,"0B4A3A");
         w(dir,"obsidian","tier_5","minecraft:obsidian",1,"5C2D8C");
+        w(dir,"netherite","tier_5","minecraft:netherite_scrap",1,"4A3229");
     }
 
     private static void w(Path dir, String name, String tier, String output, int count, String color) {

@@ -35,6 +35,9 @@ public class NTCreativeTab {
                         // Drying Rack
                         output.accept(NTItems.DRYING_RACK_ITEM.get());
 
+                        // RGB Dye
+                        output.accept(NTItems.RGB_DYE.get());
+
                         // Saplings
                         for (ResourceTreeType tree : NTTreeRegistry.getAllTrees()) {
                             var sapling = NTItems.getAllSaplingItems().get(tree.name());

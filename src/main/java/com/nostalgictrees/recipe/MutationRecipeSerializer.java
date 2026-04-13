@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 import java.util.List;
+import java.util.Optional;
 
 public class MutationRecipeSerializer implements RecipeSerializer<MutationRecipe> {
 
@@ -17,8 +18,12 @@ public class MutationRecipeSerializer implements RecipeSerializer<MutationRecipe
                     ResourceLocation.CODEC.fieldOf("base_sapling").forGetter(MutationRecipe::getBaseSapling),
                     ResourceLocation.CODEC.listOf().fieldOf("honeycombs").forGetter(MutationRecipe::getHoneycombs),
                     ResourceLocation.CODEC.fieldOf("result").forGetter(MutationRecipe::getResultSapling),
-                    Codec.INT.optionalFieldOf("pollinations_required", 3).forGetter(MutationRecipe::getPollinationsRequired)
-            ).apply(instance, MutationRecipe::new)
+                    Codec.INT.optionalFieldOf("pollinations_required", 3).forGetter(MutationRecipe::getPollinationsRequired),
+                    ResourceLocation.CODEC.optionalFieldOf("catalyst").forGetter(r ->
+                            Optional.ofNullable(r.getCatalyst())),
+                    Codec.INT.optionalFieldOf("catalyst_count", 0).forGetter(MutationRecipe::getCatalystCount)
+            ).apply(instance, (base, combs, result, poll, catalyst, catCount) ->
+                    new MutationRecipe(base, combs, result, poll, catalyst.orElse(null), catCount))
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MutationRecipe> STREAM_CODEC =
@@ -36,7 +41,10 @@ public class MutationRecipeSerializer implements RecipeSerializer<MutationRecipe
         }
         ResourceLocation result = buf.readResourceLocation();
         int pollinations = buf.readVarInt();
-        return new MutationRecipe(baseSapling, honeycombs, result, pollinations);
+        boolean hasCatalyst = buf.readBoolean();
+        ResourceLocation catalyst = hasCatalyst ? buf.readResourceLocation() : null;
+        int catalystCount = buf.readVarInt();
+        return new MutationRecipe(baseSapling, honeycombs, result, pollinations, catalyst, catalystCount);
     }
 
     private static void toNetwork(RegistryFriendlyByteBuf buf, MutationRecipe recipe) {
@@ -47,6 +55,11 @@ public class MutationRecipeSerializer implements RecipeSerializer<MutationRecipe
         }
         buf.writeResourceLocation(recipe.getResultSapling());
         buf.writeVarInt(recipe.getPollinationsRequired());
+        buf.writeBoolean(recipe.hasCatalyst());
+        if (recipe.hasCatalyst()) {
+            buf.writeResourceLocation(recipe.getCatalyst());
+        }
+        buf.writeVarInt(recipe.getCatalystCount());
     }
 
     @Override

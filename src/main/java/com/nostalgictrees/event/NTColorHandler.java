@@ -18,8 +18,10 @@ public class NTColorHandler {
     @SubscribeEvent
     public static void onBlockColors(RegisterColorHandlersEvent.Block event) {
         for (ResourceTreeType tree : NTTreeRegistry.getAllTrees()) {
-            int c = tree.color() | 0xFF000000;
             String n = tree.name();
+            if (n.equals("rgb")) continue;
+
+            int c = tree.color() | 0xFF000000;
             try {
                 Block log = NTBlocks.getLogBlock(n);
                 Block stripped = NTBlocks.getStrippedLogBlock(n);
@@ -39,8 +41,10 @@ public class NTColorHandler {
     @SubscribeEvent
     public static void onItemColors(RegisterColorHandlersEvent.Item event) {
         for (ResourceTreeType tree : NTTreeRegistry.getAllTrees()) {
-            int c = tree.color() | 0xFF000000;
             String n = tree.name();
+            if (n.equals("rgb")) continue;
+
+            int c = tree.color() | 0xFF000000;
             try {
                 Block log = NTBlocks.getLogBlock(n);
                 Block stripped = NTBlocks.getStrippedLogBlock(n);
@@ -56,7 +60,6 @@ public class NTColorHandler {
                 if (apple != null) event.register((s,t) -> c, apple);
                 if (chunk != null) event.register((s,t) -> c, chunk);
 
-                // Honeycomb tinting
                 var honeycombDef = NTItems.getAllHoneycombItems().get(n);
                 if (honeycombDef != null) event.register((s,t) -> c, honeycombDef.get());
             } catch (Exception e) {

@@ -86,7 +86,7 @@ public class ResourceSaplingBlock extends BaseEntityBlock implements Bonemealabl
         if (!stack.isEmpty()) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof ResourceSaplingBlockEntity saplingBE) {
-                if (saplingBE.tryApplyHoneycomb(stack)) {
+                if (saplingBE.tryApplyItem(stack)) {
                     return ItemInteractionResult.SUCCESS;
                 }
             }

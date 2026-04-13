@@ -7,38 +7,39 @@ import com.google.gson.JsonObject;
 import com.nostalgictrees.NostalgicTrees;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.resources.ResourceLocation;
 
 public class DynamicResourceGenerator {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final String MODID = NostalgicTrees.MODID;
+    private static InMemoryPackResources currentPack;
 
-    public static void generate(Path root, Collection<ResourceTreeType> trees) {
+
+    public static InMemoryPackResources generate(Collection<ResourceTreeType> trees) {
         NostalgicTrees.LOGGER.info("Generating dynamic resources for {} trees...", trees.size());
 
+        currentPack = new InMemoryPackResources(
+                new net.minecraft.server.packs.PackLocationInfo(
+                        MODID + "_generated",
+                        net.minecraft.network.chat.Component.literal("Nostalgic Trees Generated Resources"),
+                        net.minecraft.server.packs.repository.PackSource.BUILT_IN,
+                        java.util.Optional.empty()));
+
         try {
-            // Create pack.mcmeta
-            Files.createDirectories(root);
-            Files.writeString(root.resolve("pack.mcmeta"),
-                    "{\"pack\":{\"description\":\"Nostalgic Trees Generated Resources\",\"pack_format\":34}}");
-
-            Path blockstates = root.resolve("assets/" + MODID + "/blockstates");
-            Path blockModels = root.resolve("assets/" + MODID + "/models/block");
-            Path itemModels = root.resolve("assets/" + MODID + "/models/item");
-            Path lang = root.resolve("assets/" + MODID + "/lang");
-            Path lootTables = root.resolve("data/" + MODID + "/loot_table/blocks");
-            Path recipes = root.resolve("data/" + MODID + "/recipe");
-            Path tagsBlock = root.resolve("data/minecraft/tags/block");
-            Path tagsMineable = root.resolve("data/minecraft/tags/block/mineable");
-            Path modTagsBlock = root.resolve("data/" + MODID + "/tags/block");
-            Path modTagsItem = root.resolve("data/" + MODID + "/tags/item");
-
-            for (Path p : new Path[]{blockstates, blockModels, itemModels, lang,
-                    lootTables, recipes, tagsBlock, tagsMineable, modTagsBlock, modTagsItem}) {
-                Files.createDirectories(p);
-            }
+            // Virtual path prefixes — used as keys, not actual filesystem paths
+            Path blockstates = Path.of("assets", MODID, "blockstates");
+            Path blockModels = Path.of("assets", MODID, "models", "block");
+            Path itemModels = Path.of("assets", MODID, "models", "item");
+            Path lang = Path.of("assets", MODID, "lang");
+            Path lootTables = Path.of("data", MODID, "loot_table", "blocks");
+            Path recipes = Path.of("data", MODID, "recipe");
+            Path tagsBlock = Path.of("data", "minecraft", "tags", "block");
+            Path tagsMineable = Path.of("data", "minecraft", "tags", "block", "mineable");
+            Path modTagsBlock = Path.of("data", MODID, "tags", "block");
+            Path modTagsItem = Path.of("data", MODID, "tags", "item");
 
             // Shared block models
             writeSharedModels(blockModels, itemModels);
@@ -74,7 +75,7 @@ public class DynamicResourceGenerator {
 
             for (ResourceTreeType tree : trees) {
                 String n = tree.name();
-                String d = cap(n);
+                String d = n.equals("rgb") ? "RGB" : cap(n);
 
                 // Lang
                 langObj.addProperty("block." + MODID + "." + n + "_log", d + " Log");
@@ -86,19 +87,36 @@ public class DynamicResourceGenerator {
                 langObj.addProperty("item." + MODID + "." + n + "_honeycomb", d + " Honeycomb");
 
                 // Blockstates
-                writeBlockstate(blockstates, n + "_log", MODID + ":block/nt_log", null);
-                writeBlockstate(blockstates, "stripped_" + n + "_log", MODID + ":block/nt_stripped_log", null);
-                writeBlockstate(blockstates, n + "_leaves", MODID + ":block/nt_leaves", "minecraft:cutout_mipped");
-                writeBlockstate(blockstates, n + "_sapling", MODID + ":block/nt_sapling", "minecraft:cutout");
+                if (n.equals("rgb")) {
+                    writeBlockstate(blockstates, n + "_log", MODID + ":block/rgb_log", null);
+                    writeBlockstate(blockstates, "stripped_" + n + "_log", MODID + ":block/rgb_stripped_log", null);
+                    writeBlockstate(blockstates, n + "_leaves", MODID + ":block/rgb_leaves", "minecraft:cutout_mipped");
+                    writeBlockstate(blockstates, n + "_sapling", MODID + ":block/rgb_sapling", "minecraft:cutout");
+                } else {
+                    writeBlockstate(blockstates, n + "_log", MODID + ":block/nt_log", null);
+                    writeBlockstate(blockstates, "stripped_" + n + "_log", MODID + ":block/nt_stripped_log", null);
+                    writeBlockstate(blockstates, n + "_leaves", MODID + ":block/nt_leaves", "minecraft:cutout_mipped");
+                    writeBlockstate(blockstates, n + "_sapling", MODID + ":block/nt_sapling", "minecraft:cutout");
+                }
 
                 // Item models
-                writeParent(itemModels, n + "_log", MODID + ":block/nt_log");
-                writeParent(itemModels, "stripped_" + n + "_log", MODID + ":block/nt_stripped_log");
-                writeParent(itemModels, n + "_leaves", MODID + ":block/nt_leaves");
-                writeParent(itemModels, n + "_sapling", MODID + ":item/nt_sapling");
-                writeGenerated(itemModels, n + "_apple", MODID + ":item/base_apple");
-                writeGenerated(itemModels, n + "_chunk", MODID + ":item/base_chunk");
-                writeGenerated(itemModels, n + "_honeycomb", MODID + ":item/base_honeycomb");
+                if (n.equals("rgb")) {
+                    writeParent(itemModels, n + "_log", MODID + ":block/rgb_log");
+                    writeParent(itemModels, "stripped_" + n + "_log", MODID + ":block/rgb_stripped_log");
+                    writeParent(itemModels, n + "_leaves", MODID + ":block/rgb_leaves");
+                    writeGenerated(itemModels, n + "_sapling", MODID + ":block/rgb_sapling");
+                    writeGenerated(itemModels, n + "_apple", MODID + ":item/rgb_apple");
+                    writeGenerated(itemModels, n + "_chunk", MODID + ":item/rgb_chunk");
+                    writeGenerated(itemModels, n + "_honeycomb", MODID + ":item/rgb_honeycomb");
+                } else {
+                    writeParent(itemModels, n + "_log", MODID + ":block/nt_log");
+                    writeParent(itemModels, "stripped_" + n + "_log", MODID + ":block/nt_stripped_log");
+                    writeParent(itemModels, n + "_leaves", MODID + ":block/nt_leaves");
+                    writeParent(itemModels, n + "_sapling", MODID + ":item/nt_sapling");
+                    writeGenerated(itemModels, n + "_apple", MODID + ":item/base_apple");
+                    writeGenerated(itemModels, n + "_chunk", MODID + ":item/base_chunk");
+                    writeGenerated(itemModels, n + "_honeycomb", MODID + ":item/base_honeycomb");
+                }
 
                 // Loot tables
                 writeLeavesLoot(lootTables, n);
@@ -129,6 +147,9 @@ public class DynamicResourceGenerator {
             // === Drying Rack (MUST be before lang write so name is included) ===
             writeDryingRackResources(blockstates, blockModels, itemModels, lootTables, recipes, langObj);
 
+            // === RGB Dye (MUST be before lang write) ===
+            writeRGBDyeResources(itemModels, recipes, langObj);
+
             // Write lang (after all lang entries have been added)
             writeJson(lang.resolve("en_us.json"), langObj);
 
@@ -157,8 +178,7 @@ public class DynamicResourceGenerator {
             beehivesTag.add(MODID + ":resource_beehive");
             writeTag(tagsBlock.resolve("beehives.json"), beehivesTag);
 
-            Path poiTags = root.resolve("data/minecraft/tags/point_of_interest_type");
-            Files.createDirectories(poiTags);
+            Path poiTags = Path.of("data", "minecraft", "tags", "point_of_interest_type");
             JsonArray beeHomeTag = new JsonArray();
             beeHomeTag.add(MODID + ":resource_beehive");
             writeTag(poiTags.resolve("bee_home.json"), beeHomeTag);
@@ -181,10 +201,14 @@ public class DynamicResourceGenerator {
             // === Mutation Recipes (Tier 2+) ===
             writeMutationRecipes(recipes);
 
+            // === Bee Spawn Egg Recipe ===
+            writeBeeSpawnEggRecipe(recipes);
+
             NostalgicTrees.LOGGER.info("Generated all dynamic resources successfully");
         } catch (Exception e) {
             NostalgicTrees.LOGGER.error("Failed to generate dynamic resources!", e);
         }
+        return currentPack;
     }
 
     private static void writeSharedModels(Path bm, Path im) throws IOException {
@@ -195,7 +219,7 @@ public class DynamicResourceGenerator {
          "north":{"texture":"#side","tintindex":0},"south":{"texture":"#side","tintindex":0},
          "west":{"texture":"#side","tintindex":0},"east":{"texture":"#side","tintindex":0}}}]}
         """.replace("MODID", MODID);
-        Files.writeString(bm.resolve("nt_log.json"), log);
+        putString(bm.resolve("nt_log.json"), log);
 
         String stripped = """
         {"parent":"minecraft:block/cube_column","textures":{"end":"MODID:block/base_stripped_log_top","side":"MODID:block/base_stripped_log"},
@@ -204,7 +228,7 @@ public class DynamicResourceGenerator {
          "north":{"texture":"#side","tintindex":0},"south":{"texture":"#side","tintindex":0},
          "west":{"texture":"#side","tintindex":0},"east":{"texture":"#side","tintindex":0}}}]}
         """.replace("MODID", MODID);
-        Files.writeString(bm.resolve("nt_stripped_log.json"), stripped);
+        putString(bm.resolve("nt_stripped_log.json"), stripped);
 
         String leaves = """
         {"parent":"minecraft:block/cube_all","textures":{"all":"MODID:block/base_leaves"},
@@ -213,7 +237,7 @@ public class DynamicResourceGenerator {
          "north":{"texture":"#all","tintindex":0},"south":{"texture":"#all","tintindex":0},
          "west":{"texture":"#all","tintindex":0},"east":{"texture":"#all","tintindex":0}}}]}
         """.replace("MODID", MODID);
-        Files.writeString(bm.resolve("nt_leaves.json"), leaves);
+        putString(bm.resolve("nt_leaves.json"), leaves);
 
         String sapling = """
         {"parent":"minecraft:block/cross","textures":{"cross":"MODID:block/base_sapling"},
@@ -223,12 +247,33 @@ public class DynamicResourceGenerator {
          {"from":[8,0,0.8],"to":[8,16,15.2],"rotation":{"origin":[8,8,8],"axis":"y","angle":45,"rescale":true},"shade":false,
           "faces":{"west":{"uv":[0,0,16,16],"texture":"#cross","tintindex":0},"east":{"uv":[0,0,16,16],"texture":"#cross","tintindex":0}}}]}
         """.replace("MODID", MODID);
-        Files.writeString(bm.resolve("nt_sapling.json"), sapling);
+        putString(bm.resolve("nt_sapling.json"), sapling);
 
         String saplingItem = """
         {"parent":"minecraft:item/generated","textures":{"layer0":"MODID:block/base_sapling"}}
         """.replace("MODID", MODID);
-        Files.writeString(im.resolve("nt_sapling.json"), saplingItem);
+        putString(im.resolve("nt_sapling.json"), saplingItem);
+
+        // === RGB tree models (no tintindex — uses animated textures directly) ===
+        String rgbLog = """
+        {"parent":"minecraft:block/cube_column","textures":{"end":"MODID:block/rgb_log_top","side":"MODID:block/rgb_log"}}
+        """.replace("MODID", MODID);
+        putString(bm.resolve("rgb_log.json"), rgbLog);
+
+        String rgbStripped = """
+        {"parent":"minecraft:block/cube_column","textures":{"end":"MODID:block/rgb_stripped_log_top","side":"MODID:block/rgb_stripped_log"}}
+        """.replace("MODID", MODID);
+        putString(bm.resolve("rgb_stripped_log.json"), rgbStripped);
+
+        String rgbLeaves = """
+        {"parent":"minecraft:block/cube_all","textures":{"all":"MODID:block/rgb_leaves"}}
+        """.replace("MODID", MODID);
+        putString(bm.resolve("rgb_leaves.json"), rgbLeaves);
+
+        String rgbSapling = """
+        {"parent":"minecraft:block/cross","textures":{"cross":"MODID:block/rgb_sapling"}}
+        """.replace("MODID", MODID);
+        putString(bm.resolve("rgb_sapling.json"), rgbSapling);
     }
 
     private static void writeBlockstate(Path dir, String name, String model, String rt) throws IOException {
@@ -280,7 +325,7 @@ public class DynamicResourceGenerator {
             {"condition":"minecraft:random_chance","chance":0.05}]}],
            "conditions":[{"condition":"minecraft:survives_explosion"}]}]}
         """.replace("MODID", MODID).replace("NAME", name);
-        Files.writeString(dir.resolve(name + "_leaves.json"), json);
+        putString(dir.resolve(name + "_leaves.json"), json);
     }
 
     private static void writeSimpleLoot(Path dir, String name, String itemId) throws IOException {
@@ -431,11 +476,38 @@ public class DynamicResourceGenerator {
           }
         }
         """;
-        Files.writeString(dir.resolve("resource_beehive.json"), model);
+        putString(dir.resolve("resource_beehive.json"), model);
     }
 
     private static void writeJson(Path path, JsonObject obj) throws IOException {
-        Files.writeString(path, GSON.toJson(obj));
+        putString(path, GSON.toJson(obj));
+    }
+
+    private static void putString(Path path, String content) {
+        String fullPath = path.toString().replace(java.io.File.separatorChar, '/');
+        // Determine PackType from path prefix
+        PackType type;
+        String resourcePath;
+        String namespace;
+        if (fullPath.startsWith("assets/")) {
+            type = PackType.CLIENT_RESOURCES;
+            // assets/NAMESPACE/rest/of/path
+            String afterAssets = fullPath.substring("assets/".length());
+            int slashIdx = afterAssets.indexOf('/');
+            namespace = afterAssets.substring(0, slashIdx);
+            resourcePath = afterAssets.substring(slashIdx + 1);
+        } else if (fullPath.startsWith("data/")) {
+            type = PackType.SERVER_DATA;
+            String afterData = fullPath.substring("data/".length());
+            int slashIdx = afterData.indexOf('/');
+            namespace = afterData.substring(0, slashIdx);
+            resourcePath = afterData.substring(slashIdx + 1);
+        } else {
+            NostalgicTrees.LOGGER.warn("Unknown path prefix for resource: {}", fullPath);
+            return;
+        }
+        ResourceLocation loc = ResourceLocation.fromNamespaceAndPath(namespace, resourcePath);
+        currentPack.putJson(type, loc, content);
     }
 
     private static String cap(String s) { return s.substring(0, 1).toUpperCase() + s.substring(1); }
@@ -500,7 +572,7 @@ public class DynamicResourceGenerator {
           ]
         }
         """;
-        Files.writeString(blockModels.resolve("drying_rack.json"), model);
+        putString(blockModels.resolve("drying_rack.json"), model);
 
         // Item model
         writeParent(itemModels, "drying_rack", MODID + ":block/drying_rack");
@@ -658,24 +730,98 @@ public class DynamicResourceGenerator {
     // ======================== MUTATION RECIPES ========================
 
     private static void writeMutationRecipes(Path recipes) throws IOException {
-        Path mutationDir = recipes;
-        // Define mutations that require honeycombs + bee pollination
+        // === Tier 2 Mutations ===
+        // Copper: Coal Sapling + Bone/Stone/RGB honeycombs, 5 pollinations
+        writeMutationRecipe(recipes, "copper_mutation",
+                MODID + ":coal_sapling",
+                new String[]{MODID + ":bone_honeycomb", MODID + ":stone_honeycomb", MODID + ":rgb_honeycomb"},
+                MODID + ":copper_sapling", 5, null, 0);
 
-        // Copper Sapling: coal + bone honeycombs a sapling
-        writeMutationRecipe(mutationDir, "copper_mutation",
-                MODID + ":clay_sapling",
-                new String[]{MODID + ":coal_honeycomb", MODID + ":bone_honeycomb"},
-                MODID + ":copper_sapling", 3);
+        // Iron: Ice Sapling + Clay/Sand/RGB honeycombs, 5 pollinations
+        writeMutationRecipe(recipes, "iron_mutation",
+                MODID + ":ice_sapling",
+                new String[]{MODID + ":clay_honeycomb", MODID + ":sand_honeycomb", MODID + ":rgb_honeycomb"},
+                MODID + ":iron_sapling", 5, null, 0);
 
-        // Iron Sapling: coal + copper honeycombs a sapling
-        writeMutationRecipe(mutationDir, "iron_mutation",
-                MODID + ":clay_sapling",
+        // === Tier 3 Mutations (5 pollinations) ===
+        // Redstone: Iron Sapling + Coal/Copper honeycombs
+        writeMutationRecipe(recipes, "redstone_mutation",
+                MODID + ":iron_sapling",
                 new String[]{MODID + ":coal_honeycomb", MODID + ":copper_honeycomb"},
-                MODID + ":iron_sapling", 5);
+                MODID + ":redstone_sapling", 5, null, 0);
+
+        // Quartz: Iron Sapling + Stone/Sand honeycombs
+        writeMutationRecipe(recipes, "quartz_mutation",
+                MODID + ":iron_sapling",
+                new String[]{MODID + ":stone_honeycomb", MODID + ":sand_honeycomb"},
+                MODID + ":quartz_sapling", 5, null, 0);
+
+        // Amethyst: Copper Sapling + Ice/Clay honeycombs
+        writeMutationRecipe(recipes, "amethyst_mutation",
+                MODID + ":copper_sapling",
+                new String[]{MODID + ":ice_honeycomb", MODID + ":clay_honeycomb"},
+                MODID + ":amethyst_sapling", 5, null, 0);
+
+        // Prismarine: Ice Sapling + Stone/Bone honeycombs
+        writeMutationRecipe(recipes, "prismarine_mutation",
+                MODID + ":ice_sapling",
+                new String[]{MODID + ":stone_honeycomb", MODID + ":bone_honeycomb"},
+                MODID + ":prismarine_sapling", 5, null, 0);
+
+        // Experience: Iron Sapling + RGB/Bone honeycombs
+        writeMutationRecipe(recipes, "experience_mutation",
+                MODID + ":iron_sapling",
+                new String[]{MODID + ":rgb_honeycomb", MODID + ":bone_honeycomb"},
+                MODID + ":experience_sapling", 5, null, 0);
+
+        // === Tier 4 Mutations (7 pollinations + catalyst) ===
+        // Gold: Redstone Sapling + Iron/Quartz honeycombs + 2 gold ingots
+        writeMutationRecipe(recipes, "gold_mutation",
+                MODID + ":redstone_sapling",
+                new String[]{MODID + ":iron_honeycomb", MODID + ":quartz_honeycomb"},
+                MODID + ":gold_sapling", 7, "minecraft:gold_ingot", 2);
+
+        // Lapis: Amethyst Sapling + Iron/Prismarine honeycombs + 4 lapis lazuli
+        writeMutationRecipe(recipes, "lapis_mutation",
+                MODID + ":amethyst_sapling",
+                new String[]{MODID + ":iron_honeycomb", MODID + ":prismarine_honeycomb"},
+                MODID + ":lapis_sapling", 7, "minecraft:lapis_lazuli", 4);
+
+        // Glowstone: Quartz Sapling + Redstone/Experience honeycombs + 4 glowstone dust
+        writeMutationRecipe(recipes, "glowstone_mutation",
+                MODID + ":quartz_sapling",
+                new String[]{MODID + ":redstone_honeycomb", MODID + ":experience_honeycomb"},
+                MODID + ":glowstone_sapling", 7, "minecraft:glowstone_dust", 4);
+
+        // === Tier 5 Mutations (10 pollinations + catalyst) ===
+        // Diamond: Gold Sapling + Lapis/Amethyst honeycombs + 4 diamonds
+        writeMutationRecipe(recipes, "diamond_mutation",
+                MODID + ":gold_sapling",
+                new String[]{MODID + ":lapis_honeycomb", MODID + ":amethyst_honeycomb"},
+                MODID + ":diamond_sapling", 10, "minecraft:diamond", 4);
+
+        // Emerald: Gold Sapling + Experience/Prismarine honeycombs + 4 emeralds
+        writeMutationRecipe(recipes, "emerald_mutation",
+                MODID + ":gold_sapling",
+                new String[]{MODID + ":experience_honeycomb", MODID + ":prismarine_honeycomb"},
+                MODID + ":emerald_sapling", 10, "minecraft:emerald", 4);
+
+        // Obsidian: Diamond Sapling + Redstone/Coal honeycombs + 8 obsidian
+        writeMutationRecipe(recipes, "obsidian_mutation",
+                MODID + ":diamond_sapling",
+                new String[]{MODID + ":redstone_honeycomb", MODID + ":coal_honeycomb"},
+                MODID + ":obsidian_sapling", 10, "minecraft:obsidian", 8);
+
+        // Netherite: Diamond Sapling + Gold/Obsidian honeycombs + 1 netherite ingot
+        writeMutationRecipe(recipes, "netherite_mutation",
+                MODID + ":diamond_sapling",
+                new String[]{MODID + ":gold_honeycomb", MODID + ":obsidian_honeycomb"},
+                MODID + ":netherite_sapling", 10, "minecraft:netherite_ingot", 1);
     }
 
     private static void writeMutationRecipe(Path dir, String name, String baseSapling,
-                                             String[] honeycombs, String result, int pollinations) throws IOException {
+                                             String[] honeycombs, String result, int pollinations,
+                                             String catalyst, int catalystCount) throws IOException {
         JsonObject o = new JsonObject();
         o.addProperty("type", MODID + ":mutation");
         o.addProperty("base_sapling", baseSapling);
@@ -686,6 +832,114 @@ public class DynamicResourceGenerator {
         o.add("honeycombs", combsArray);
         o.addProperty("result", result);
         o.addProperty("pollinations_required", pollinations);
+        if (catalyst != null && catalystCount > 0) {
+            o.addProperty("catalyst", catalyst);
+            o.addProperty("catalyst_count", catalystCount);
+        }
         writeJson(dir.resolve(name + ".json"), o);
+    }
+
+    // ======================== RGB DYE ========================
+
+    private static void writeRGBDyeResources(Path itemModels, Path recipes, JsonObject langObj) throws IOException {
+        // Lang
+        langObj.addProperty("item." + MODID + ".rgb_dye", "RGB Dye");
+
+        // Item model (uses animated texture directly, no tint)
+        writeGenerated(itemModels, "rgb_dye", MODID + ":item/rgb_dye");
+
+        // 16 shaped recipes with unique patterns (3-7 rgb_dyes each)
+        // Each outputs 2 of the target dye
+        String D = MODID + ":rgb_dye";
+
+        // White (3) - horizontal top row
+        writeShapedDyeRecipe(recipes, "white_dye", new String[]{"DDD"}, D, 2);
+        // Orange (3) - vertical left column
+        writeShapedDyeRecipe(recipes, "orange_dye", new String[]{"D", "D", "D"}, D, 2);
+        // Magenta (3) - diagonal top-left to bottom-right
+        writeShapedDyeRecipe(recipes, "magenta_dye", new String[]{"D  ", " D ", "  D"}, D, 2);
+        // Light Blue (3) - diagonal top-right to bottom-left
+        writeShapedDyeRecipe(recipes, "light_blue_dye", new String[]{"  D", " D ", "D  "}, D, 2);
+        // Yellow (4) - 2x2 top-left square
+        writeShapedDyeRecipe(recipes, "yellow_dye", new String[]{"DD", "DD"}, D, 2);
+        // Lime (4) - L shape
+        writeShapedDyeRecipe(recipes, "lime_dye", new String[]{"D ", "D ", "DD"}, D, 2);
+        // Pink (4) - corners
+        writeShapedDyeRecipe(recipes, "pink_dye", new String[]{"D D", "   ", "D D"}, D, 2);
+        // Gray (4) - T shape upside down
+        writeShapedDyeRecipe(recipes, "gray_dye", new String[]{" D ", "DDD"}, D, 2);
+        // Light Gray (4) - reverse L
+        writeShapedDyeRecipe(recipes, "light_gray_dye", new String[]{" D", " D", "DD"}, D, 2);
+        // Cyan (4) - Z shape
+        writeShapedDyeRecipe(recipes, "cyan_dye", new String[]{"DD ", " DD"}, D, 2);
+        // Purple (5) - plus/cross
+        writeShapedDyeRecipe(recipes, "purple_dye", new String[]{" D ", "DDD", " D "}, D, 2);
+        // Blue (5) - T shape
+        writeShapedDyeRecipe(recipes, "blue_dye", new String[]{"DDD", " D ", " D "}, D, 2);
+        // Brown (5) - diamond
+        writeShapedDyeRecipe(recipes, "brown_dye", new String[]{" D ", "D D", " D "}, D, 2);
+        // Green (6) - top 2 rows
+        writeShapedDyeRecipe(recipes, "green_dye", new String[]{"DDD", "DDD"}, D, 2);
+        // Red (6) - left 2 columns
+        writeShapedDyeRecipe(recipes, "red_dye", new String[]{"DD", "DD", "DD"}, D, 2);
+        // Black (7) - ring
+        writeShapedDyeRecipe(recipes, "black_dye", new String[]{"DDD", "D D", "DDD"}, D, 2);
+    }
+
+    private static void writeShapedDyeRecipe(Path dir, String dyeName, String[] pattern,
+                                              String dyeItem, int outputCount) throws IOException {
+        JsonObject o = new JsonObject();
+        o.addProperty("type", "minecraft:crafting_shaped");
+        JsonArray patternArr = new JsonArray();
+        for (String row : pattern) {
+            patternArr.add(row);
+        }
+        o.add("pattern", patternArr);
+        JsonObject key = new JsonObject();
+        JsonObject d = new JsonObject();
+        d.addProperty("item", dyeItem);
+        key.add("D", d);
+        o.add("key", key);
+        JsonObject result = new JsonObject();
+        result.addProperty("id", "minecraft:" + dyeName);
+        result.addProperty("count", outputCount);
+        o.add("result", result);
+        writeJson(dir.resolve("rgb_dye_to_" + dyeName + ".json"), o);
+    }
+    // ======================== BEE SPAWN EGG ========================
+
+    private static void writeBeeSpawnEggRecipe(Path recipes) throws IOException {
+        JsonObject o = new JsonObject();
+        o.addProperty("type", "minecraft:crafting_shaped");
+        JsonArray pattern = new JsonArray();
+        pattern.add("WGO");
+        pattern.add("BEY");
+        pattern.add("PUR");
+        o.add("pattern", pattern);
+        JsonObject key = new JsonObject();
+        JsonObject w = new JsonObject(); w.addProperty("item", "minecraft:white_dye");
+        key.add("W", w);
+        JsonObject g = new JsonObject(); g.addProperty("item", "minecraft:green_dye");
+        key.add("G", g);
+        JsonObject oo = new JsonObject(); oo.addProperty("item", "minecraft:orange_dye");
+        key.add("O", oo);
+        JsonObject b = new JsonObject(); b.addProperty("item", "minecraft:black_dye");
+        key.add("B", b);
+        JsonObject e = new JsonObject(); e.addProperty("item", "minecraft:egg");
+        key.add("E", e);
+        JsonObject y = new JsonObject(); y.addProperty("item", "minecraft:yellow_dye");
+        key.add("Y", y);
+        JsonObject p = new JsonObject(); p.addProperty("item", "minecraft:purple_dye");
+        key.add("P", p);
+        JsonObject u = new JsonObject(); u.addProperty("item", "minecraft:blue_dye");
+        key.add("U", u);
+        JsonObject r = new JsonObject(); r.addProperty("item", "minecraft:red_dye");
+        key.add("R", r);
+        o.add("key", key);
+        JsonObject result = new JsonObject();
+        result.addProperty("id", "minecraft:bee_spawn_egg");
+        result.addProperty("count", 1);
+        o.add("result", result);
+        writeJson(recipes.resolve("bee_spawn_egg.json"), o);
     }
 }
