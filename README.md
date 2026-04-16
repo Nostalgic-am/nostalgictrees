@@ -1,99 +1,84 @@
 # Nostalgic Trees
 
-A NeoForge 1.21.1 mod inspired by Sky Orchards from Sky Factory. Grow resource trees, harvest apples, and process logs with mallets to obtain raw materials.
+---
+## What It Does
 
-## How It Works
+Nostalgic Trees introduces **unique resource trees**, each producing a different item — from dirt and stone to diamond and netherite. Players progress through tiers of trees by:
 
-### The Pipeline
-```
-Sapling → Tree (1 log + leaves) → Break leaves for Apples
-                                 → Break log with Mallet for Stripped Log
-Stripped Log → Crafting → 4 Chunks
-Chunk + Apple → Crafting → Raw Resource
-```
+1. **Crafting** basic saplings from vanilla materials
+2. **Mutating** higher-tier saplings by applying honeycombs and waiting for bees to pollinate them
+3. **Catalyzing** mutations with rare resources (gold, diamond, netherite) as part of the recipe
+4. **Processing** grown logs with mallets to extract resource chunks
+5. **Crafting** (e.g. 4 iron chunks + 4 iron apples + 1 iron bee comb = 4 iron ingots)
 
-### Tree Tiers
-Trees are organized into 5 tiers that affect mallet durability cost:
+All recipes are visible in JEI. Saplings display their mutation progress via Jade tooltips.
 
-| Tier | Durability Cost | Resources |
-|------|----------------|-----------|
-| Tier 1 | 1 per hit | Dirt, Sand, Gravel, Clay, Bone |
-| Tier 2 | 2 per hit | Coal, Copper |
-| Tier 3 | 4 per hit | Iron, Quartz, Redstone |
-| Tier 4 | 8 per hit | Gold, Lapis, Glowstone |
-| Tier 5 | 16 per hit | Diamond, Emerald, Ender Pearl, Obsidian |
+---
+## Core Mechanics
 
-### Mallets
-Tiered tools that convert resource logs into stripped logs when used to break them.
+### Mutations
 
-| Mallet | Durability | Efficiency | Tier 5 Cost |
-|--------|-----------|------------|-------------|
-| Wooden | 59 | 1.0x | 16 (~3 logs) |
-| Stone | 131 | 0.85x | 14 (~9 logs) |
-| Iron | 250 | 0.7x | 12 (~20 logs) |
-| Gold | 32 | 0.5x | 8 (~4 logs) |
-| Diamond | 1561 | 0.5x | 8 (~195 logs) |
-| Netherite | 2031 | 0.35x | 6 (~338 logs) |
+1. Plant the **base sapling** on dirt or grass
+2. Right-click with each required **honeycomb**
+3. If the recipe has a **catalyst**, right-click with the catalyst item
+4. Place a nearby **Advanced Beehive** with bees
+5. Bees will pollinate the sapling until it **transforms** into the result
 
-Gold mallets are low durability but very efficient — a niche choice for specific situations.
+Mutation progress is shown in the Jade tooltip when looking at the sapling.
 
-### Recipes
-- **Mallets**: Shaped recipe (material + sticks in a hammer pattern)
-- **Netherite Mallet**: Smithing table (diamond mallet + netherite ingot + template)
-- **Chunks**: Shapeless (1 stripped log → 4 chunks)
-- **Resources**: Shapeless (1 chunk + 1 apple → raw resource)
+### Advanced Beehive
 
-## For Modpack Developers
+The Advanced Beehive extends vanilla beehive functionality:
+- Holds up to 5 bees
+- Outputs **mod-specific honeycombs** when bees return from resource trees
+- 9 output slots for collected honey bottles and honeycombs
+- Slots for bottles and shears to auto-collect when honey is full
 
-### Adding Custom Trees via Datapack
-Place a JSON file in your datapack at:
-```
-data/<namespace>/nostalgictrees/trees/<tree_name>.json
-```
+### Mallets (Log → Chunk Processing)
 
-Example (`data/mypack/nostalgictrees/trees/tin.json`):
+To process a resource tree, **break** the logs with a **mallet** in hand. This will give you the stripped log.
+Which can be turned into resource chunks.
+
+### Drying Rack
+
+Place a drying rack and right-click with a valid input to begin drying.
+
+Built-in recipes:
+- Dirt Sapling → Stone Sapling
+- Clay Ball → Bone Meal
+- Bone Block → Snow Block
+
+Drying recipes are visible in JEI.
+
+---
+## Configuration
+
+### Tree Configs
+
+Each tree is defined by a JSON file in `config/nostalgictrees/trees/`. Edit these to customize:
+
+- `tier` — which tier the tree belongs to (determines durability use on mallet)
+- `outputItem` — what item the resource recipe produces (e.g. `minecraft:diamond`)
+- `outputCount` — how many items are produced per resource recipe
+- `color` — hex color for tinting leaves and chunks
+
+### Creating Custom Trees
+Tool to make help make custom trees: https://nostalgic.am/treeconfig/
+
+Drop a new JSON file into `config/nostalgictrees/trees/` like:
+
 ```json
 {
-  "name": "tin",
-  "tier": "tier_2",
-  "output_item": "mekanism:raw_tin",
-  "output_count": 2,
-  "required_mod": "mekanism"
+  "tier": "tier_3",
+  "outputItem": "minecraft:slime_ball",
+  "outputCount": 2,
+  "color": "7EBF6E"
 }
 ```
 
-### Tier Values
-- `tier_1` — 1 durability cost (basic materials)
-- `tier_2` — 2 durability cost (common ores)
-- `tier_3` — 4 durability cost (mid-tier ores)
-- `tier_4` — 8 durability cost (valuable resources)
-- `tier_5` — 16 durability cost (endgame resources)
+Name the file `{treename}.json`. All textures, blockstates, models, recipes, loot tables, and tags generate automatically.
 
-### Required Assets
-When adding a custom tree, you also need to provide in a resource pack:
-- Textures: `textures/block/<name>_log.png`, `stripped_<name>_log.png`, `<name>_leaves.png`, `<name>_sapling.png`
-- Textures: `textures/item/<name>_apple.png`, `<name>_chunk.png`
-- Blockstates and models (follow the pattern of built-in trees)
-- Lang entries
-
-## Built-in Resources (17 tree types)
-
-**Tier 1:** Dirt, Sand, Gravel, Clay, Bone
-**Tier 2:** Coal, Copper
-**Tier 3:** Iron, Quartz, Redstone
-**Tier 4:** Gold, Lapis, Glowstone
-**Tier 5:** Diamond, Emerald, Ender Pearl, Obsidian
-
-## Installation
-1. Install NeoForge for Minecraft 1.21.1
-2. Place the mod jar in your `mods` folder
-3. Launch the game
-
-## Building from Source
-```bash
-./gradlew build
-```
-The built jar will be in `build/libs/`.
-
+---
 ## License
-MIT
+
+All Rights Reserved. See LICENSE file for details.

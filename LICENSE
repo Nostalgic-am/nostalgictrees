@@ -1,16 +1,36 @@
-MIT License
+All Rights Reserved
 
 Copyright (c) 2026 NostalgicTrees Team
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+All rights reserved. No part of this software or its associated documentation,
+source code, textures, models, or any other assets may be reproduced,
+distributed, modified, or transmitted in any form or by any means, including
+but not limited to photocopying, recording, redistribution, or other
+electronic or mechanical methods, without the prior written permission of the
+copyright holder, except in the following cases:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. Inclusion in Minecraft modpacks is permitted without prior permission,
+   provided that the mod is distributed in its original, unmodified form and
+   proper credit is given to the NostalgicTrees Team.
+
+2. Brief excerpts of source code may be referenced for educational or
+   critical commentary purposes with appropriate attribution.
+
+You may NOT:
+- Redistribute modified versions of this mod
+- Reupload the mod to any platform without permission
+- Claim ownership of the mod or any of its assets
+- Use this mod's assets (textures, models, code) in other projects without
+  written permission
+- Monetize this mod in any way other than through platforms authorized by the
+  NostalgicTrees Team
+
+You MAY:
+- Include the unmodified mod in modpacks distributed through legitimate
+  channels (CurseForge, Modrinth, etc.)
+- Create content (videos, streams, screenshots) featuring this mod
+- Report bugs and suggest features through the official repository
+- Submit pull requests for review
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
