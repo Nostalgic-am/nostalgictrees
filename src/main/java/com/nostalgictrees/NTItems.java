@@ -90,9 +90,6 @@ public class NTItems {
         return item != null ? item.get() : null;
     }
 
-    /**
-     * Get a honeycomb ItemStack for a given tree name.
-     */
     public static ItemStack getHoneycombItem(String treeName) {
         DeferredItem<Item> item = HONEYCOMB_ITEMS.get(treeName);
         return item != null ? new ItemStack(item.get()) : ItemStack.EMPTY;

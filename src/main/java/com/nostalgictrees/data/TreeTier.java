@@ -2,11 +2,6 @@ package com.nostalgictrees.data;
 
 import net.minecraft.util.StringRepresentable;
 
-/**
- * Tiers for resource trees. Higher tiers cost more mallet durability to process.
- * This is the core progression mechanic — wooden mallets work on all tiers but
- * burn through durability on higher ones.
- */
 public enum TreeTier implements StringRepresentable {
     TIER_1("tier_1", 1, 0x8B6914),   // Dirt, Sand, Gravel, Clay, Bone
     TIER_2("tier_2", 2, 0x7B7B7B),   // Coal, Copper
@@ -25,11 +20,6 @@ public enum TreeTier implements StringRepresentable {
         this.color = color;
     }
 
-    /**
-     * How many durability points this tier costs per mallet hit.
-     * A wooden mallet (59 durability) can process ~59 Tier 1 logs,
-     * but only ~3 Tier 5 logs.
-     */
     public int getDurabilityCost() {
         return durabilityCost;
     }

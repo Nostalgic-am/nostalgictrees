@@ -16,12 +16,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
-/**
- * Handles the core mallet mechanic:
- * When a player breaks a ResourceLogBlock while holding a MalletItem,
- * the log drops its stripped variant and the mallet takes durability damage
- * based on the tree's tier and the mallet's efficiency.
- */
 @EventBusSubscriber(modid = NostalgicTrees.MODID)
 public class NTMalletEventHandler {
 

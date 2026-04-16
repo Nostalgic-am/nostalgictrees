@@ -17,10 +17,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-/**
- * An in-memory resource pack that serves resources from a map.
- * No files are written to disk.
- */
 public class InMemoryPackResources implements PackResources {
 
     private static final Gson GSON = new GsonBuilder().create();

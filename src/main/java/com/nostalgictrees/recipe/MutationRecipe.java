@@ -12,13 +12,6 @@ import net.minecraft.world.level.Level;
 import javax.annotation.Nullable;
 import java.util.List;
 
-/**
- * A mutation recipe. Not used in a crafting container — instead looked up
- * manually by ResourceSaplingBlockEntity when honeycombs are applied.
- *
- * Optionally includes a catalyst item (e.g. diamonds) that must be right-clicked
- * onto the sapling after all honeycombs are applied, before bees can pollinate.
- */
 public class MutationRecipe implements Recipe<net.minecraft.world.item.crafting.SingleRecipeInput> {
 
     private final ResourceLocation baseSapling;

@@ -36,7 +36,6 @@ import java.util.*;
  * - Which honeycombs have been applied (right-clicked)
  * - Whether the catalyst item has been applied (if recipe requires one)
  * - How many times bees have pollinated this sapling
- * - Which bee UUIDs have already been counted
  */
 public class ResourceSaplingBlockEntity extends BlockEntity {
 
@@ -52,10 +51,6 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
 
     // ======================== ITEM APPLICATION (honeycombs + catalyst) ========================
 
-    /**
-     * Try to apply an item (honeycomb or catalyst) to this sapling.
-     * Called from ResourceSaplingBlock.useItemOn.
-     */
     public boolean tryApplyItem(ItemStack stack) {
         if (level == null || level.isClientSide()) return false;
 
@@ -68,9 +63,6 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
         return false;
     }
 
-    /**
-     * Try to apply a honeycomb item to this sapling.
-     */
     private boolean tryApplyHoneycomb(ItemStack honeycombStack) {
         ResourceLocation honeycombId = getItemId(honeycombStack);
         if (honeycombId == null) return false;
@@ -126,10 +118,6 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
         return true;
     }
 
-    /**
-     * Try to apply a catalyst item to this sapling.
-     * Only works after all honeycombs are applied and recipe has a catalyst.
-     */
     private boolean tryApplyCatalyst(ItemStack catalystStack) {
         if (catalystApplied) return false;
 
@@ -169,10 +157,6 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
         return true;
     }
 
-    /**
-     * Check if sapling is ready for bee pollination.
-     * All combs applied + catalyst applied (if required).
-     */
     public boolean readyForPollination() {
         MutationRecipe recipe = findRecipe();
         if (recipe == null) return false;

@@ -3,10 +3,6 @@ package com.nostalgictrees.data;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.Tiers;
 
-/**
- * Mallet tiers mirror vanilla tool tiers for durability.
- * The efficiency bonus reduces the durability cost when processing higher-tier logs.
- */
 public enum MalletTier {
     WOOD(Tiers.WOOD, 59, 1.0f),
     STONE(Tiers.STONE, 131, 0.85f),
@@ -33,19 +29,10 @@ public enum MalletTier {
         return maxDurability;
     }
 
-    /**
-     * Multiplier applied to tree tier durability cost.
-     * Lower = more efficient. A netherite mallet at 0.35x means
-     * Tier 5 logs cost 16 * 0.35 = ~6 durability instead of 16.
-     */
     public float getEfficiencyMultiplier() {
         return efficiencyMultiplier;
     }
 
-    /**
-     * Calculate actual durability cost for a given tree tier.
-     * Always costs at least 1 durability.
-     */
     public int getDurabilityCostFor(TreeTier treeTier) {
         return Math.max(1, Math.round(treeTier.getDurabilityCost() * efficiencyMultiplier));
     }

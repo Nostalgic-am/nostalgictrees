@@ -6,10 +6,6 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Predicate;
 
-/**
- * A slot that uses a predicate to decide what items can be placed.
- * Also supports marking a slot as output-only (no manual insertion).
- */
 public class FilteredSlot extends Slot {
     private final Predicate<ItemStack> filter;
     private final boolean outputOnly;

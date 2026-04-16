@@ -26,8 +26,6 @@ import java.util.List;
 
 /**
  * Drying Rack Block Entity.
- *
- * Holds one item and transforms it over time.
  * Recipes are loaded from the vanilla recipe manager (type: nostalgictrees:drying).
  */
 public class DryingRackBlockEntity extends BlockEntity {

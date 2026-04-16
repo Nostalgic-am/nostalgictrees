@@ -17,17 +17,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Resource Beehive — extends vanilla BeehiveBlock directly.
- *
- * All bee AI, honey_level blockstate, shearing, bottling, POI, and
- * entity pathfinding works out of the box because we ARE a BeehiveBlock.
- *
- * We override:
- *   - newBlockEntity() → our AdvancedBeehiveBlockEntity (extends BeehiveBlockEntity)
- *   - getTicker() → our tick method for auto-production
- *   - useWithoutItem() → opens our custom GUI instead of vanilla behavior
- */
 public class AdvancedBeehiveBlock extends BeehiveBlock {
     public static final MapCodec<AdvancedBeehiveBlock> CODEC = simpleCodec(p -> new AdvancedBeehiveBlock());
 

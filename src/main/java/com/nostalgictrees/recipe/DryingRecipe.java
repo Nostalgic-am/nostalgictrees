@@ -10,10 +10,6 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 
-/**
- * Drying rack recipe. Input item → output item over a number of ticks.
- * Looked up by DryingRackBlockEntity when an item is placed on the rack.
- */
 public class DryingRecipe implements Recipe<SingleRecipeInput> {
 
     private final ResourceLocation inputItem;
@@ -33,17 +29,11 @@ public class DryingRecipe implements Recipe<SingleRecipeInput> {
     public int getOutputCount() { return outputCount; }
     public int getDryingTime() { return dryingTime; }
 
-    /**
-     * Get the input as an ItemStack (resolved at runtime).
-     */
     public ItemStack getInputStack() {
         var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(inputItem);
         return item != null ? new ItemStack(item) : ItemStack.EMPTY;
     }
 
-    /**
-     * Get the output as an ItemStack (resolved at runtime).
-     */
     public ItemStack getOutputStack() {
         var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(outputItem);
         return item != null ? new ItemStack(item, outputCount) : ItemStack.EMPTY;
