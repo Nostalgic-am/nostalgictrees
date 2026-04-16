@@ -11,7 +11,7 @@ Nostalgic Trees introduces **unique resource trees**, each producing a different
 4. **Processing** grown logs with mallets to extract resource chunks
 5. **Crafting** (e.g. 4 iron chunks + 4 iron apples + 1 iron bee comb = 4 iron ingots)
 
-All recipes are visible in JEI. Saplings display their mutation progress via Jade tooltips.
+**All recipes are visible in JEI. Saplings display their mutation progress via Jade tooltips.**
 
 ---
 ## Core Mechanics
@@ -28,7 +28,6 @@ Mutation progress is shown in the Jade tooltip when looking at the sapling.
 
 ### Advanced Beehive
 
-The Advanced Beehive extends vanilla beehive functionality:
 - Holds up to 5 bees
 - Outputs **mod-specific honeycombs** when bees return from resource trees
 - 9 output slots for collected honey bottles and honeycombs
@@ -48,7 +47,7 @@ Built-in recipes:
 - Clay Ball → Bone Meal
 - Bone Block → Snow Block
 
-Drying recipes are visible in JEI.
+**Drying recipes are visible in JEI.**
 
 ---
 ## Configuration
@@ -69,10 +68,11 @@ Drop a new JSON file into `config/nostalgictrees/trees/` like:
 
 ```json
 {
-  "tier": "tier_3",
-  "outputItem": "minecraft:slime_ball",
-  "outputCount": 2,
-  "color": "7EBF6E"
+  "name": "slime",
+  "tier": "tier_2",
+  "output_item": "minecraft:slime_ball",
+  "output_count": 1,
+  "color": "5EF765"
 }
 ```
 
