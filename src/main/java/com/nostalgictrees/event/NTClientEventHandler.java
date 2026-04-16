@@ -3,7 +3,7 @@ package com.nostalgictrees.event;
 import com.nostalgictrees.NTBlocks;
 import com.nostalgictrees.NostalgicTrees;
 import com.nostalgictrees.client.DryingRackRenderer;
-import com.nostalgictrees.client.ResourceBeehiveScreen;
+import com.nostalgictrees.client.AdvancedBeehiveScreen;
 import com.nostalgictrees.data.NTTreeRegistry;
 import com.nostalgictrees.data.ResourceTreeType;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -41,7 +41,7 @@ public class NTClientEventHandler {
 
     @SubscribeEvent
     public static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
-        event.register(NTBlocks.RESOURCE_BEEHIVE_MENU.get(), ResourceBeehiveScreen::new);
+        event.register(NTBlocks.ADVANCED_BEEHIVE_MENU.get(), AdvancedBeehiveScreen::new);
     }
 
     @SubscribeEvent

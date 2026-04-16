@@ -44,6 +44,7 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
     private boolean catalystApplied = false;
     private int pollinationCount = 0;
     private final Set<UUID> countedBeeUUIDs = new HashSet<>();
+    private int growthStage = 0;
 
     public ResourceSaplingBlockEntity(BlockPos pos, BlockState state) {
         super(NTBlocks.SAPLING_BE.get(), pos, state);
@@ -314,6 +315,13 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
         return pollinationCount;
     }
 
+    public int getGrowthStage() { return growthStage; }
+
+    public void setGrowthStage(int stage) {
+        this.growthStage = stage;
+        setChanged();
+    }
+
     // ======================== NBT ========================
 
     @Override
@@ -327,6 +335,7 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
         tag.put("AppliedHoneycombs", combsList);
         tag.putBoolean("CatalystApplied", catalystApplied);
         tag.putInt("PollinationCount", pollinationCount);
+        tag.putInt("GrowthStage", growthStage);
 
         ListTag uuidList = new ListTag();
         for (UUID uuid : countedBeeUUIDs) {
@@ -351,6 +360,7 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
 
         catalystApplied = tag.getBoolean("CatalystApplied");
         pollinationCount = tag.getInt("PollinationCount");
+        growthStage = tag.getInt("GrowthStage");
 
         countedBeeUUIDs.clear();
         if (tag.contains("CountedBees")) {

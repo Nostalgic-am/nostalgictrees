@@ -1,17 +1,17 @@
 package com.nostalgictrees.client;
 
 import com.nostalgictrees.NostalgicTrees;
-import com.nostalgictrees.menu.ResourceBeehiveMenu;
+import com.nostalgictrees.menu.AdvancedBeehiveMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-public class ResourceBeehiveScreen extends AbstractContainerScreen<ResourceBeehiveMenu> {
+public class AdvancedBeehiveScreen extends AbstractContainerScreen<AdvancedBeehiveMenu> {
 
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(NostalgicTrees.MODID, "textures/gui/resource_beehive.png");
+            ResourceLocation.fromNamespaceAndPath(NostalgicTrees.MODID, "textures/gui/advanced_beehive.png");
 
     // Hex cell centers from the texture (where bee icons render)
     // Bee icon is 16x16, so render at (center - 8, center - 8)
@@ -23,7 +23,7 @@ public class ResourceBeehiveScreen extends AbstractContainerScreen<ResourceBeehi
             {51 - 8, 75 - 8},   // 4: bottom-right
     };
 
-    public ResourceBeehiveScreen(ResourceBeehiveMenu menu, Inventory playerInventory, Component title) {
+    public AdvancedBeehiveScreen(AdvancedBeehiveMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 174;
         this.imageHeight = 222;

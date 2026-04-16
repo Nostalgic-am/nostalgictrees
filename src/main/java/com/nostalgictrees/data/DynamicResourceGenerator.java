@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
 
 public class DynamicResourceGenerator {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -67,8 +68,8 @@ public class DynamicResourceGenerator {
             JsonObject langObj = new JsonObject();
             langObj.addProperty("itemGroup.nostalgictrees", "Nostalgic Trees");
             langObj.addProperty("gui.nostalgictrees.mallet_processing", "Mallet Processing");
-            langObj.addProperty("block." + MODID + ".resource_beehive", "Resource Beehive");
-            langObj.addProperty("gui.nostalgictrees.resource_beehive", "Resource Beehive");
+            langObj.addProperty("block." + MODID + ".advanced_beehive", "Advanced Beehive");
+            langObj.addProperty("gui.nostalgictrees.advanced_beehive", "Advanced Beehive");
             for (String tier : new String[]{"wooden", "stone", "iron", "golden", "diamond", "netherite"}) {
                 langObj.addProperty("item." + MODID + "." + tier + "_mallet", cap(tier) + " Mallet");
             }
@@ -171,16 +172,16 @@ public class DynamicResourceGenerator {
             // Beehive blockstate
             writeBeehiveBlockstate(blockstates);
             writeBeehiveModel(blockModels);
-            writeParent(itemModels, "resource_beehive", MODID + ":block/resource_beehive");
-            writeSimpleLoot(lootTables, "resource_beehive", MODID + ":resource_beehive");
+            writeParent(itemModels, "advanced_beehive", MODID + ":block/advanced_beehive");
+            writeSimpleLoot(lootTables, "advanced_beehive", MODID + ":advanced_beehive");
 
             JsonArray beehivesTag = new JsonArray();
-            beehivesTag.add(MODID + ":resource_beehive");
+            beehivesTag.add(MODID + ":advanced_beehive");
             writeTag(tagsBlock.resolve("beehives.json"), beehivesTag);
 
             Path poiTags = Path.of("data", "minecraft", "tags", "point_of_interest_type");
             JsonArray beeHomeTag = new JsonArray();
-            beeHomeTag.add(MODID + ":resource_beehive");
+            beeHomeTag.add(MODID + ":advanced_beehive");
             writeTag(poiTags.resolve("bee_home.json"), beeHomeTag);
 
             // Mallets tag
@@ -355,7 +356,7 @@ public class DynamicResourceGenerator {
         o.add("ingredients", ing);
         JsonObject r = new JsonObject();
         r.addProperty("id", MODID + ":" + name + "_chunk");
-        r.addProperty("count", 4);
+        r.addProperty("count", 1);
         o.add("result", r);
         writeJson(dir.resolve(name + "_chunk_from_stripped_log.json"), o);
     }
@@ -439,7 +440,7 @@ public class DynamicResourceGenerator {
         JsonObject root = new JsonObject();
         JsonObject variants = new JsonObject();
 
-        String model = MODID + ":block/resource_beehive";
+        String model = MODID + ":block/advanced_beehive";
 
         JsonObject north = new JsonObject();
         north.addProperty("model", model);
@@ -461,7 +462,7 @@ public class DynamicResourceGenerator {
         variants.add("facing=east", east);
 
         root.add("variants", variants);
-        writeJson(dir.resolve("resource_beehive.json"), root);
+        writeJson(dir.resolve("advanced_beehive.json"), root);
     }
 
     private static void writeBeehiveModel(Path dir) throws IOException {
@@ -469,14 +470,14 @@ public class DynamicResourceGenerator {
         {
           "parent": "minecraft:block/orientable_with_bottom",
           "textures": {
-            "top": "minecraft:block/bee_nest_top",
-            "side": "minecraft:block/bee_nest_side",
-            "front": "minecraft:block/bee_nest_front",
-            "bottom": "minecraft:block/bee_nest_bottom"
+            "top": "MODID:block/advanced_beehive_top",
+            "side": "MODID:block/advanced_beehive_side",
+            "front": "MODID:block/advanced_beehive_front",
+            "bottom": "MODID:block/advanced_beehive_bottom"
           }
         }
-        """;
-        putString(dir.resolve("resource_beehive.json"), model);
+        """.replace("MODID", MODID);
+        putString(dir.resolve("advanced_beehive.json"), model);
     }
 
     private static void writeJson(Path path, JsonObject obj) throws IOException {
@@ -520,6 +521,8 @@ public class DynamicResourceGenerator {
         langObj.addProperty("block." + MODID + ".drying_rack", "Drying Rack");
         langObj.addProperty("gui.nostalgictrees.drying_rack", "Drying Rack");
         langObj.addProperty("gui.nostalgictrees.mutation", "Bee Mutation");
+        langObj.addProperty("config.jade.plugin_nostalgictrees.sapling_mutation", "Sapling Mutation");
+        langObj.addProperty("config.jade.plugin_nostalgictrees.drying_rack", "Drying Rack");
 
         // Blockstate with facing variants
         JsonObject bs = new JsonObject();
@@ -660,6 +663,33 @@ public class DynamicResourceGenerator {
         writeSurroundRecipe(recipes, "ice_sapling",
                 "minecraft:snowball", MODID + ":bone_sapling",
                 MODID + ":ice_sapling");
+
+        // 9. RGB Sapling: White dyes in corners, R/G/B/Y cross, bone sapling center
+        JsonObject rgb = new JsonObject();
+        rgb.addProperty("type", "minecraft:crafting_shaped");
+        JsonArray rgbPattern = new JsonArray();
+        rgbPattern.add("WRW");
+        rgbPattern.add("GCB");
+        rgbPattern.add("WYW");
+        rgb.add("pattern", rgbPattern);
+        JsonObject rgbKey = new JsonObject();
+        JsonObject wd = new JsonObject(); wd.addProperty("item", "minecraft:white_dye"); rgbKey.add("W", wd);
+        JsonObject rd = new JsonObject(); rd.addProperty("item", "minecraft:red_dye"); rgbKey.add("R", rd);
+        JsonObject gd = new JsonObject(); gd.addProperty("item", "minecraft:green_dye"); rgbKey.add("G", gd);
+        JsonObject bd = new JsonObject(); bd.addProperty("item", "minecraft:blue_dye"); rgbKey.add("B", bd);
+        JsonObject yd = new JsonObject(); yd.addProperty("item", "minecraft:yellow_dye"); rgbKey.add("Y", yd);
+        JsonObject cd = new JsonObject(); cd.addProperty("item", MODID + ":bone_sapling"); rgbKey.add("C", cd);
+        rgb.add("key", rgbKey);
+        JsonObject rgbResult = new JsonObject();
+        rgbResult.addProperty("id", MODID + ":rgb_sapling");
+        rgbResult.addProperty("count", 1);
+        rgb.add("result", rgbResult);
+        writeJson(recipes.resolve("rgb_sapling.json"), rgb);
+
+        // Advanced Beehive: RGB sapling surrounded by oak logs
+        writeSurroundRecipe(recipes, "advanced_beehive",
+                "minecraft:oak_log", MODID + ":rgb_sapling",
+                MODID + ":advanced_beehive");
     }
 
     private static void writeSurroundRecipe(Path dir, String name, String surrounding, String center, String output) throws IOException {
@@ -731,91 +761,94 @@ public class DynamicResourceGenerator {
 
     private static void writeMutationRecipes(Path recipes) throws IOException {
         // === Tier 2 Mutations ===
-        // Copper: Coal Sapling + Bone/Stone/RGB honeycombs, 5 pollinations
+
+        // Copper:
         writeMutationRecipe(recipes, "copper_mutation",
                 MODID + ":coal_sapling",
                 new String[]{MODID + ":bone_honeycomb", MODID + ":stone_honeycomb", MODID + ":rgb_honeycomb"},
                 MODID + ":copper_sapling", 5, null, 0);
 
-        // Iron: Ice Sapling + Clay/Sand/RGB honeycombs, 5 pollinations
+        // Iron:
         writeMutationRecipe(recipes, "iron_mutation",
                 MODID + ":ice_sapling",
                 new String[]{MODID + ":clay_honeycomb", MODID + ":sand_honeycomb", MODID + ":rgb_honeycomb"},
                 MODID + ":iron_sapling", 5, null, 0);
 
         // === Tier 3 Mutations (5 pollinations) ===
-        // Redstone: Iron Sapling + Coal/Copper honeycombs
+
+        // Redstone:
         writeMutationRecipe(recipes, "redstone_mutation",
                 MODID + ":iron_sapling",
-                new String[]{MODID + ":coal_honeycomb", MODID + ":copper_honeycomb"},
+                new String[]{MODID + ":coal_honeycomb", MODID + ":copper_honeycomb", MODID + ":stone_honeycomb"},
                 MODID + ":redstone_sapling", 5, null, 0);
 
-        // Quartz: Iron Sapling + Stone/Sand honeycombs
-        writeMutationRecipe(recipes, "quartz_mutation",
-                MODID + ":iron_sapling",
-                new String[]{MODID + ":stone_honeycomb", MODID + ":sand_honeycomb"},
-                MODID + ":quartz_sapling", 5, null, 0);
-
-        // Amethyst: Copper Sapling + Ice/Clay honeycombs
+        // Amethyst:
         writeMutationRecipe(recipes, "amethyst_mutation",
                 MODID + ":copper_sapling",
-                new String[]{MODID + ":ice_honeycomb", MODID + ":clay_honeycomb"},
+                new String[]{MODID + ":ice_honeycomb", MODID + ":clay_honeycomb", MODID + ":redstone_honeycomb"},
                 MODID + ":amethyst_sapling", 5, null, 0);
 
-        // Prismarine: Ice Sapling + Stone/Bone honeycombs
+        // Prismarine:
         writeMutationRecipe(recipes, "prismarine_mutation",
                 MODID + ":ice_sapling",
-                new String[]{MODID + ":stone_honeycomb", MODID + ":bone_honeycomb"},
+                new String[]{MODID + ":stone_honeycomb", MODID + ":bone_honeycomb", MODID + ":rgb_honeycomb"},
                 MODID + ":prismarine_sapling", 5, null, 0);
 
-        // Experience: Iron Sapling + RGB/Bone honeycombs
+        // Experience:
         writeMutationRecipe(recipes, "experience_mutation",
-                MODID + ":iron_sapling",
-                new String[]{MODID + ":rgb_honeycomb", MODID + ":bone_honeycomb"},
+                MODID + ":amethyst_sapling",
+                new String[]{MODID + ":rgb_honeycomb", MODID + ":amethyst_honeycomb", MODID + ":redstone_honeycomb"},
                 MODID + ":experience_sapling", 5, null, 0);
 
         // === Tier 4 Mutations (7 pollinations + catalyst) ===
-        // Gold: Redstone Sapling + Iron/Quartz honeycombs + 2 gold ingots
-        writeMutationRecipe(recipes, "gold_mutation",
+
+        // Quartz:
+        writeMutationRecipe(recipes, "quartz_mutation",
                 MODID + ":redstone_sapling",
+                new String[]{MODID + ":amethyst_honeycomb", MODID + ":sand_honeycomb"},
+                MODID + ":quartz_sapling", 7, "minecraft:quartz", 2);
+
+        // Gold:
+        writeMutationRecipe(recipes, "gold_mutation",
+                MODID + ":quartz_sapling",
                 new String[]{MODID + ":iron_honeycomb", MODID + ":quartz_honeycomb"},
                 MODID + ":gold_sapling", 7, "minecraft:gold_ingot", 2);
 
-        // Lapis: Amethyst Sapling + Iron/Prismarine honeycombs + 4 lapis lazuli
+        // Lapis:
         writeMutationRecipe(recipes, "lapis_mutation",
                 MODID + ":amethyst_sapling",
-                new String[]{MODID + ":iron_honeycomb", MODID + ":prismarine_honeycomb"},
+                new String[]{MODID + ":redstone_honeycomb", MODID + ":prismarine_honeycomb", MODID + ":rgb_honeycomb"},
                 MODID + ":lapis_sapling", 7, "minecraft:lapis_lazuli", 4);
 
-        // Glowstone: Quartz Sapling + Redstone/Experience honeycombs + 4 glowstone dust
+        // Glowstone:
         writeMutationRecipe(recipes, "glowstone_mutation",
-                MODID + ":quartz_sapling",
-                new String[]{MODID + ":redstone_honeycomb", MODID + ":experience_honeycomb"},
-                MODID + ":glowstone_sapling", 7, "minecraft:glowstone_dust", 4);
+                MODID + ":experience_sapling",
+                new String[]{MODID + ":redstone_honeycomb", MODID + ":experience_honeycomb", MODID + ":lapis_honeycomb"},
+                MODID + ":glowstone_sapling", 7, "minecraft:glowstone_block", 4);
 
         // === Tier 5 Mutations (10 pollinations + catalyst) ===
-        // Diamond: Gold Sapling + Lapis/Amethyst honeycombs + 4 diamonds
+        // Diamond:
         writeMutationRecipe(recipes, "diamond_mutation",
                 MODID + ":gold_sapling",
-                new String[]{MODID + ":lapis_honeycomb", MODID + ":amethyst_honeycomb"},
+                new String[]{MODID + ":iron_honeycomb", MODID + ":gold_honeycomb", MODID + ":lapis_honeycomb", MODID + ":redstone_honeycomb"},
                 MODID + ":diamond_sapling", 10, "minecraft:diamond", 4);
 
-        // Emerald: Gold Sapling + Experience/Prismarine honeycombs + 4 emeralds
+        // Emerald:
         writeMutationRecipe(recipes, "emerald_mutation",
                 MODID + ":gold_sapling",
-                new String[]{MODID + ":experience_honeycomb", MODID + ":prismarine_honeycomb"},
+                new String[]{MODID + ":experience_honeycomb", MODID + ":prismarine_honeycomb", MODID + ":glowstone_honeycomb"},
                 MODID + ":emerald_sapling", 10, "minecraft:emerald", 4);
 
-        // Obsidian: Diamond Sapling + Redstone/Coal honeycombs + 8 obsidian
+        // Obsidian:
         writeMutationRecipe(recipes, "obsidian_mutation",
                 MODID + ":diamond_sapling",
-                new String[]{MODID + ":redstone_honeycomb", MODID + ":coal_honeycomb"},
+                new String[]{MODID + ":stone_honeycomb", MODID + ":quartz_honeycomb", MODID + ":diamond_honeycomb"},
                 MODID + ":obsidian_sapling", 10, "minecraft:obsidian", 8);
 
-        // Netherite: Diamond Sapling + Gold/Obsidian honeycombs + 1 netherite ingot
+        // Netherite:
         writeMutationRecipe(recipes, "netherite_mutation",
                 MODID + ":diamond_sapling",
-                new String[]{MODID + ":gold_honeycomb", MODID + ":obsidian_honeycomb"},
+                new String[]{MODID + ":gold_honeycomb", MODID + ":obsidian_honeycomb", MODID + ":diamond_honeycomb", MODID + ":quartz_honeycomb"},
                 MODID + ":netherite_sapling", 10, "minecraft:netherite_ingot", 1);
     }
 

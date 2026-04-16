@@ -66,12 +66,12 @@ public class NTTreeRegistry {
         w(dir,"copper","tier_2","minecraft:raw_copper",2,"C06840");
         w(dir,"iron","tier_2","minecraft:raw_iron",1,"C9A78B");
         // Tier 3 (mutations, 5 pollinations)
-        w(dir,"quartz","tier_3","minecraft:quartz",2,"E8DDD0");
         w(dir,"redstone","tier_3","minecraft:redstone",3,"A01010");
         w(dir,"amethyst","tier_3","minecraft:amethyst_shard",2,"9B6BC4");
         w(dir,"prismarine","tier_3","minecraft:prismarine_shard",2,"5B9E8F");
         w(dir,"experience","tier_3","minecraft:experience_bottle",1,"A8E830");
         // Tier 4 (mutations, 7 pollinations + catalyst)
+        w(dir,"quartz","tier_4","minecraft:quartz",2,"E8DDD0");
         w(dir,"gold","tier_4","minecraft:raw_gold",1,"F5D63D");
         w(dir,"lapis","tier_4","minecraft:lapis_lazuli",2,"2546C4");
         w(dir,"glowstone","tier_4","minecraft:glowstone_dust",3,"C99E35");

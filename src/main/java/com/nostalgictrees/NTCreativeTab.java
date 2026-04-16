@@ -30,7 +30,7 @@ public class NTCreativeTab {
                         output.accept(NTItems.NETHERITE_MALLET.get());
 
                         // Resource Beehive
-                        output.accept(NTItems.RESOURCE_BEEHIVE_ITEM.get());
+                        output.accept(NTItems.ADVANCED_BEEHIVE_ITEM.get());
 
                         // Drying Rack
                         output.accept(NTItems.DRYING_RACK_ITEM.get());

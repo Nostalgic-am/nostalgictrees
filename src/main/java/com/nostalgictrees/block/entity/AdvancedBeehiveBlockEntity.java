@@ -3,7 +3,7 @@ package com.nostalgictrees.block.entity;
 import com.nostalgictrees.NTBlocks;
 import com.nostalgictrees.NTItems;
 import com.nostalgictrees.block.ResourceSaplingBlock;
-import com.nostalgictrees.menu.ResourceBeehiveMenu;
+import com.nostalgictrees.menu.AdvancedBeehiveMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -32,13 +32,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResourceBeehiveBlockEntity extends BeehiveBlockEntity implements Container, MenuProvider {
+public class AdvancedBeehiveBlockEntity extends BeehiveBlockEntity implements Container, MenuProvider {
 
     public static final int BOTTLE_SLOT = 0;
     public static final int SHEARS_SLOT = 1;
     public static final int OUTPUT_SLOT_START = 2;
-    public static final int OUTPUT_SLOT_COUNT = 6;
-    public static final int TOTAL_SLOTS = 8;
+    public static final int OUTPUT_SLOT_COUNT = 9;
+    public static final int TOTAL_SLOTS = 11;
     public static final int MAX_BEES = 5;
 
     private final ItemStack[] inventory = new ItemStack[TOTAL_SLOTS];
@@ -66,7 +66,7 @@ public class ResourceBeehiveBlockEntity extends BeehiveBlockEntity implements Co
         }
     };
 
-    public ResourceBeehiveBlockEntity(BlockPos pos, BlockState state) {
+    public AdvancedBeehiveBlockEntity(BlockPos pos, BlockState state) {
         super(pos, state);
         for (int i = 0; i < TOTAL_SLOTS; i++) {
             inventory[i] = ItemStack.EMPTY;
@@ -77,7 +77,7 @@ public class ResourceBeehiveBlockEntity extends BeehiveBlockEntity implements Co
 
     @Override
     public net.minecraft.world.level.block.entity.BlockEntityType<?> getType() {
-        return NTBlocks.RESOURCE_BEEHIVE_BE.get();
+        return NTBlocks.ADVANCED_BEEHIVE_BE.get();
     }
 
     @Override
@@ -106,7 +106,7 @@ public class ResourceBeehiveBlockEntity extends BeehiveBlockEntity implements Co
     // ======================== TICK ========================
 
     public static void serverTick(Level level, BlockPos pos, BlockState state,
-                                  ResourceBeehiveBlockEntity be) {
+                                  AdvancedBeehiveBlockEntity be) {
         BeehiveBlockEntity.serverTick(level, pos, state, be);
         be.productionTick();
     }
@@ -301,13 +301,13 @@ public class ResourceBeehiveBlockEntity extends BeehiveBlockEntity implements Co
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("gui.nostalgictrees.resource_beehive");
+        return Component.translatable("gui.nostalgictrees.advanced_beehive");
     }
 
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new ResourceBeehiveMenu(containerId, playerInventory, this, dataAccess);
+        return new AdvancedBeehiveMenu(containerId, playerInventory, this, dataAccess);
     }
 
     // ======================== NBT ========================

@@ -32,8 +32,8 @@ public class NTItems {
             () -> new MalletItem(MalletTier.NETHERITE));
 
     // === Resource Beehive block item ===
-    public static final DeferredItem<Item> RESOURCE_BEEHIVE_ITEM = ITEMS.register("resource_beehive",
-            () -> new BlockItem(NTBlocks.RESOURCE_BEEHIVE.get(), new Item.Properties()));
+    public static final DeferredItem<Item> ADVANCED_BEEHIVE_ITEM = ITEMS.register("advanced_beehive",
+            () -> new BlockItem(NTBlocks.ADVANCED_BEEHIVE.get(), new Item.Properties()));
 
     // === Drying Rack block item ===
     public static final DeferredItem<Item> DRYING_RACK_ITEM = ITEMS.register("drying_rack",

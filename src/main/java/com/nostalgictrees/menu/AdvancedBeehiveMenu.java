@@ -1,7 +1,7 @@
 package com.nostalgictrees.menu;
 
 import com.nostalgictrees.NTBlocks;
-import com.nostalgictrees.block.entity.ResourceBeehiveBlockEntity;
+import com.nostalgictrees.block.entity.AdvancedBeehiveBlockEntity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -14,34 +14,34 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-public class ResourceBeehiveMenu extends AbstractContainerMenu {
+public class AdvancedBeehiveMenu extends AbstractContainerMenu {
 
     private final Container container;
     private final ContainerData data;
 
-    public ResourceBeehiveMenu(int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
+    public AdvancedBeehiveMenu(int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         this(containerId, playerInventory,
-                new SimpleContainer(ResourceBeehiveBlockEntity.TOTAL_SLOTS),
+                new SimpleContainer(AdvancedBeehiveBlockEntity.TOTAL_SLOTS),
                 new SimpleContainerData(2));
     }
 
-    public ResourceBeehiveMenu(int containerId, Inventory playerInventory, Container container, ContainerData data) {
-        super(NTBlocks.RESOURCE_BEEHIVE_MENU.get(), containerId);
+    public AdvancedBeehiveMenu(int containerId, Inventory playerInventory, Container container, ContainerData data) {
+        super(NTBlocks.ADVANCED_BEEHIVE_MENU.get(), containerId);
         this.container = container;
         this.data = data;
-        checkContainerSize(container, ResourceBeehiveBlockEntity.TOTAL_SLOTS);
+        checkContainerSize(container, AdvancedBeehiveBlockEntity.TOTAL_SLOTS);
 
         // Bottle slot
-        addSlot(new FilteredSlot(container, ResourceBeehiveBlockEntity.BOTTLE_SLOT,
+        addSlot(new FilteredSlot(container, AdvancedBeehiveBlockEntity.BOTTLE_SLOT,
                 83, 50, s -> s.is(Items.GLASS_BOTTLE)));
         // Shears slot
-        addSlot(new FilteredSlot(container, ResourceBeehiveBlockEntity.SHEARS_SLOT,
+        addSlot(new FilteredSlot(container, AdvancedBeehiveBlockEntity.SHEARS_SLOT,
                 83, 74, s -> s.is(Items.SHEARS)));
 
-        // Output slots 3x2 grid
-        for (int row = 0; row < 2; row++) {
+        // Output slots 3x3 grid
+        for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
-                int slotIndex = ResourceBeehiveBlockEntity.OUTPUT_SLOT_START + row * 3 + col;
+                int slotIndex = AdvancedBeehiveBlockEntity.OUTPUT_SLOT_START + row * 3 + col;
                 addSlot(new FilteredSlot(container, slotIndex,
                         108 + col * 18, 43 + row * 18, true));
             }
@@ -76,7 +76,7 @@ public class ResourceBeehiveMenu extends AbstractContainerMenu {
             ItemStack slotStack = slot.getItem();
             result = slotStack.copy();
 
-            int beehiveSlotCount = ResourceBeehiveBlockEntity.TOTAL_SLOTS;
+            int beehiveSlotCount = AdvancedBeehiveBlockEntity.TOTAL_SLOTS;
             int playerInvStart = beehiveSlotCount;
             int playerInvEnd = playerInvStart + 36;
 

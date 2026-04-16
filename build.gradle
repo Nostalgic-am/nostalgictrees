@@ -50,6 +50,10 @@ repositories {
         name = 'JEI'
         url = 'https://maven.blamejared.com'
     }
+    maven {
+        name = 'Jade'
+        url = "https://api.modrinth.com/maven"
+    }
 }
 
 dependencies {
@@ -58,7 +62,7 @@ dependencies {
     // JEI
     compileOnly "mezz.jei:jei-1.21.1-common-api:19.9.0.122"
     compileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.9.0.122"
-    runtimeOnly "mezz.jei:jei-1.21.1-neoforge:19.9.0.122"
+    compileOnly "maven.modrinth:jade:15.7.1+neoforge"
 }
 
 tasks.withType(ProcessResources).configureEach {

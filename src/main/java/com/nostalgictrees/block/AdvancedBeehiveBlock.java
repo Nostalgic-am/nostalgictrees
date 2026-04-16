@@ -2,7 +2,7 @@ package com.nostalgictrees.block;
 
 import com.mojang.serialization.MapCodec;
 import com.nostalgictrees.NTBlocks;
-import com.nostalgictrees.block.entity.ResourceBeehiveBlockEntity;
+import com.nostalgictrees.block.entity.AdvancedBeehiveBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
@@ -24,19 +24,19 @@ import org.jetbrains.annotations.Nullable;
  * entity pathfinding works out of the box because we ARE a BeehiveBlock.
  *
  * We override:
- *   - newBlockEntity() → our ResourceBeehiveBlockEntity (extends BeehiveBlockEntity)
+ *   - newBlockEntity() → our AdvancedBeehiveBlockEntity (extends BeehiveBlockEntity)
  *   - getTicker() → our tick method for auto-production
  *   - useWithoutItem() → opens our custom GUI instead of vanilla behavior
  */
-public class ResourceBeehiveBlock extends BeehiveBlock {
-    public static final MapCodec<ResourceBeehiveBlock> CODEC = simpleCodec(p -> new ResourceBeehiveBlock());
+public class AdvancedBeehiveBlock extends BeehiveBlock {
+    public static final MapCodec<AdvancedBeehiveBlock> CODEC = simpleCodec(p -> new AdvancedBeehiveBlock());
 
     @Override
     public MapCodec<BeehiveBlock> codec() {
         return (MapCodec) CODEC;
     }
 
-    public ResourceBeehiveBlock() {
+    public AdvancedBeehiveBlock() {
         super(Properties.of()
                 .strength(2.0f)
                 .sound(net.minecraft.world.level.block.SoundType.WOOD));
@@ -46,15 +46,15 @@ public class ResourceBeehiveBlock extends BeehiveBlock {
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ResourceBeehiveBlockEntity(pos, state);
+        return new AdvancedBeehiveBlockEntity(pos, state);
     }
 
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide() ? null :
-                createTickerHelper(type, NTBlocks.RESOURCE_BEEHIVE_BE.get(),
-                        ResourceBeehiveBlockEntity::serverTick);
+                createTickerHelper(type, NTBlocks.ADVANCED_BEEHIVE_BE.get(),
+                        AdvancedBeehiveBlockEntity::serverTick);
     }
 
     // ======================== GUI ========================
@@ -64,7 +64,7 @@ public class ResourceBeehiveBlock extends BeehiveBlock {
                                                 Player player, BlockHitResult hitResult) {
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
             BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof ResourceBeehiveBlockEntity beehiveBE) {
+            if (be instanceof AdvancedBeehiveBlockEntity beehiveBE) {
                 serverPlayer.openMenu(beehiveBE, pos);
             }
         }
@@ -78,7 +78,7 @@ public class ResourceBeehiveBlock extends BeehiveBlock {
         // Drop our custom inventory items
         if (!level.isClientSide()) {
             BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof ResourceBeehiveBlockEntity beehiveBE) {
+            if (be instanceof AdvancedBeehiveBlockEntity beehiveBE) {
                 Containers.dropContents(level, pos, beehiveBE);
             }
         }
@@ -90,7 +90,7 @@ public class ResourceBeehiveBlock extends BeehiveBlock {
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock())) {
             BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof ResourceBeehiveBlockEntity beehiveBE) {
+            if (be instanceof AdvancedBeehiveBlockEntity beehiveBE) {
                 Containers.dropContents(level, pos, beehiveBE);
             }
         }

@@ -80,7 +80,7 @@ public class ResourceSaplingBlock extends BaseEntityBlock implements Bonemealabl
 
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
-                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
+                                              Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (level.isClientSide()) return ItemInteractionResult.SUCCESS;
 
         if (!stack.isEmpty()) {
@@ -107,8 +107,8 @@ public class ResourceSaplingBlock extends BaseEntityBlock implements Bonemealabl
     // ======================== TREE GROWTH ========================
 
     @Override
-    public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (level.getMaxLocalRawBrightness(pos.above()) >= 9 && random.nextInt(7) == 0) {
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (level.getMaxLocalRawBrightness(pos.above()) >= 9 && random.nextInt(4) == 0) {
             if (!level.isAreaLoaded(pos, 1)) return;
             growTree(level, pos, random);
         }
@@ -187,12 +187,33 @@ public class ResourceSaplingBlock extends BaseEntityBlock implements Bonemealabl
 
     @Override
     public boolean isBonemealSuccess(Level level, RandomSource random, BlockPos pos, BlockState state) {
-        return level.random.nextFloat() < 0.45D;
+        return level.random.nextFloat() < 0.6D;
     }
 
     @Override
     public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
-        growTree(level, pos, random);
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof ResourceSaplingBlockEntity saplingBE) {
+            int stage = saplingBE.getGrowthStage();
+            if (stage >= 2) {
+                // Final stage - grow the tree
+                growTree(level, pos, random);
+            } else {
+                // Advance growth stage
+                saplingBE.setGrowthStage(stage + 1);
+                // Sparkle particles to show progress
+                for (int i = 0; i < 8; i++) {
+                    level.sendParticles(net.minecraft.core.particles.ParticleTypes.HAPPY_VILLAGER,
+                            pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.6,
+                            pos.getY() + 0.5 + random.nextDouble() * 0.5,
+                            pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.6,
+                            1, 0, 0, 0, 0);
+                }
+            }
+        } else {
+            // Fallback if no block entity
+            growTree(level, pos, random);
+        }
     }
 
     // ======================== GETTERS ========================

@@ -1,16 +1,16 @@
 package com.nostalgictrees;
 
 import com.nostalgictrees.block.DryingRackBlock;
-import com.nostalgictrees.block.ResourceBeehiveBlock;
+import com.nostalgictrees.block.AdvancedBeehiveBlock;
 import com.nostalgictrees.block.ResourceLeavesBlock;
 import com.nostalgictrees.block.ResourceLogBlock;
 import com.nostalgictrees.block.ResourceSaplingBlock;
 import com.nostalgictrees.block.entity.DryingRackBlockEntity;
-import com.nostalgictrees.block.entity.ResourceBeehiveBlockEntity;
+import com.nostalgictrees.block.entity.AdvancedBeehiveBlockEntity;
 import com.nostalgictrees.block.entity.ResourceSaplingBlockEntity;
 import com.nostalgictrees.data.NTTreeRegistry;
 import com.nostalgictrees.data.ResourceTreeType;
-import com.nostalgictrees.menu.ResourceBeehiveMenu;
+import com.nostalgictrees.menu.AdvancedBeehiveMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
@@ -40,27 +40,27 @@ public class NTBlocks {
             DeferredRegister.create(Registries.MENU, NostalgicTrees.MODID);
 
     // === Resource Beehive ===
-    public static final DeferredBlock<Block> RESOURCE_BEEHIVE = BLOCKS.register("resource_beehive",
-            ResourceBeehiveBlock::new);
+    public static final DeferredBlock<Block> ADVANCED_BEEHIVE = BLOCKS.register("advanced_beehive",
+            AdvancedBeehiveBlock::new);
 
     // === Resource Beehive Block Entity ===
-    public static final Supplier<BlockEntityType<ResourceBeehiveBlockEntity>> RESOURCE_BEEHIVE_BE =
-            BLOCK_ENTITY_TYPES.register("resource_beehive",
-                    () -> BlockEntityType.Builder.of(ResourceBeehiveBlockEntity::new,
-                            RESOURCE_BEEHIVE.get()).build(null));
+    public static final Supplier<BlockEntityType<AdvancedBeehiveBlockEntity>> ADVANCED_BEEHIVE_BE =
+            BLOCK_ENTITY_TYPES.register("advanced_beehive",
+                    () -> BlockEntityType.Builder.of(AdvancedBeehiveBlockEntity::new,
+                            ADVANCED_BEEHIVE.get()).build(null));
 
     // === Resource Beehive Menu ===
-    public static final Supplier<MenuType<ResourceBeehiveMenu>> RESOURCE_BEEHIVE_MENU =
-            MENU_TYPES.register("resource_beehive",
-                    () -> IMenuTypeExtension.create(ResourceBeehiveMenu::new));
+    public static final Supplier<MenuType<AdvancedBeehiveMenu>> ADVANCED_BEEHIVE_MENU =
+            MENU_TYPES.register("advanced_beehive",
+                    () -> IMenuTypeExtension.create(AdvancedBeehiveMenu::new));
     // === POI Types (so bees discover our hive via BeeLocateHiveGoal) ===
     public static final DeferredRegister<PoiType> POI_TYPES =
             DeferredRegister.create(Registries.POINT_OF_INTEREST_TYPE, NostalgicTrees.MODID);
 
-    public static final Supplier<PoiType> RESOURCE_BEEHIVE_POI =
-            POI_TYPES.register("resource_beehive",
+    public static final Supplier<PoiType> ADVANCED_BEEHIVE_POI =
+            POI_TYPES.register("advanced_beehive",
                     () -> new PoiType(
-                            RESOURCE_BEEHIVE.get().getStateDefinition().getPossibleStates()
+                            ADVANCED_BEEHIVE.get().getStateDefinition().getPossibleStates()
                                     .stream().collect(Collectors.toSet()),
                             0, 1));
 
