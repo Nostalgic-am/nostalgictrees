@@ -1,26 +1,41 @@
-modLoader = "javafml"
-loaderVersion = "[4,)"
-license = "${mod_license}"
+modLoader="javafml"
+loaderVersion="${neo_version_range}"
 
-issueTrackerURL = "https://github.com/nostalgictrees/issues"
+license="${mod_license}"
 
 [[mods]]
-modId = "${mod_id}"
-version = "${mod_version}"
-displayName = "${mod_name}"
-description = '''${mod_description}'''
-authors = "${mod_authors}"
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="${mod_authors}"
+description='''${mod_description}'''
 
 [[dependencies.${mod_id}]]
-modId = "neoforge"
-type = "required"
-versionRange = "${neo_version_range}"
-ordering = "NONE"
-side = "BOTH"
+    modId="neoforge"
+    type="required"
+    versionRange="${neo_version_range}"
+    ordering="NONE"
+    side="BOTH"
 
 [[dependencies.${mod_id}]]
-modId = "minecraft"
-type = "required"
-versionRange = "${minecraft_version_range}"
-ordering = "NONE"
-side = "BOTH"
+    modId="minecraft"
+    type="required"
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+# JEI is optional - mod works without it
+[[dependencies.${mod_id}]]
+    modId="jei"
+    type="optional"
+    versionRange="[29.5.0,)"
+    ordering="AFTER"
+    side="CLIENT"
+
+# Jade is optional
+[[dependencies.${mod_id}]]
+    modId="jade"
+    type="optional"
+    versionRange="[26.0.0,)"
+    ordering="AFTER"
+    side="CLIENT"
