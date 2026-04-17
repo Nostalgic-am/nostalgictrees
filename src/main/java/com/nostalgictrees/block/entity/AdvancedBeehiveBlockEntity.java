@@ -16,6 +16,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.animal.bee.Bee;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -28,6 +29,8 @@ import net.minecraft.world.level.block.entity.BeehiveBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,7 +89,7 @@ public class AdvancedBeehiveBlockEntity extends BeehiveBlockEntity implements Co
     }
 
     @Override
-    public void addOccupant(Entity pOccupant) {
+    public void addOccupant(Bee pOccupant) {
         if (this.getOccupantCount() < MAX_BEES) {
             pOccupant.stopRiding();
             pOccupant.ejectPassengers();
@@ -185,7 +188,7 @@ public class AdvancedBeehiveBlockEntity extends BeehiveBlockEntity implements Co
     private boolean produceHoneycombs(List<String> saplingTypes) {
         if (level == null || saplingTypes.isEmpty()) return false;
 
-        String treeName = saplingTypes.get(level.random.nextInt(saplingTypes.size()));
+        String treeName = saplingTypes.get(level.getRandom().nextInt(saplingTypes.size()));
         ItemStack combStack = NTItems.getHoneycombItem(treeName);
         if (combStack.isEmpty()) return false;
 
@@ -310,30 +313,29 @@ public class AdvancedBeehiveBlockEntity extends BeehiveBlockEntity implements Co
         return new AdvancedBeehiveMenu(containerId, playerInventory, this, dataAccess);
     }
 
-    // ======================== NBT ========================
+// ======================== NBT ========================
+
+    /*
+     * 26.1 change: saveAdditional/loadAdditional now take ValueOutput/ValueInput
+     * instead of (CompoundTag, HolderLookup.Provider). Persistence uses Codecs,
+     * so we use ItemStack.OPTIONAL_CODEC for each slot.
+     */
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
         for (int i = 0; i < TOTAL_SLOTS; i++) {
             if (!inventory[i].isEmpty()) {
-                CompoundTag itemTag = (CompoundTag) inventory[i].save(registries);
-                tag.put("Slot" + i, itemTag);
+                output.store("Slot" + i, ItemStack.OPTIONAL_CODEC, inventory[i]);
             }
         }
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
         for (int i = 0; i < TOTAL_SLOTS; i++) {
-            if (tag.contains("Slot" + i)) {
-                inventory[i] = ItemStack.parse(registries, tag.getCompound("Slot" + i)).orElse(ItemStack.EMPTY);
-            } else {
-                inventory[i] = ItemStack.EMPTY;
-            }
+            inventory[i] = input.read("Slot" + i, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
         }
     }
 
@@ -341,9 +343,9 @@ public class AdvancedBeehiveBlockEntity extends BeehiveBlockEntity implements Co
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        saveAdditional(tag, registries);
-        return tag;
+        // Default vanilla implementation reads the BE's own NBT via saveCustomOnly.
+        // This produces a tag containing what saveAdditional(ValueOutput) emitted.
+        return super.getUpdateTag(registries);
     }
 
     @Nullable

@@ -4,59 +4,90 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.nostalgictrees.block.DryingRackBlock;
 import com.nostalgictrees.block.entity.DryingRackBlockEntity;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.core.BlockPos;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import org.jspecify.annotations.Nullable;
 
-public class DryingRackRenderer implements BlockEntityRenderer<DryingRackBlockEntity> {
-
-    private final ItemRenderer itemRenderer;
+@OnlyIn(Dist.CLIENT)
+public class DryingRackRenderer implements BlockEntityRenderer<DryingRackBlockEntity, DryingRackRenderState> {
+    private final ItemModelResolver itemModelResolver;
 
     public DryingRackRenderer(BlockEntityRendererProvider.Context context) {
-        this.itemRenderer = context.getItemRenderer();
+        this.itemModelResolver = context.itemModelResolver();
     }
 
     @Override
-    public void render(DryingRackBlockEntity be, float partialTick, PoseStack poseStack,
-                       MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        ItemStack item = be.getItem();
-        if (item.isEmpty()) return;
+    public DryingRackRenderState createRenderState() {
+        return new DryingRackRenderState();
+    }
 
-        poseStack.pushPose();
+    @Override
+    public void extractRenderState(
+            DryingRackBlockEntity blockEntity,
+            DryingRackRenderState state,
+            float partialTicks,
+            Vec3 cameraPosition,
+            ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress
+    ) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
+        state.facing = blockEntity.getBlockState().getValue(DryingRackBlock.FACING);
 
-        Direction facing = be.getBlockState().getValue(DryingRackBlock.FACING);
+        ItemStack itemStack = blockEntity.getItem();
+        if (!itemStack.isEmpty()) {
+            ItemStackRenderState renderState = new ItemStackRenderState();
+            this.itemModelResolver.updateForTopItem(
+                    renderState,
+                    itemStack,
+                    ItemDisplayContext.FIXED,
+                    blockEntity.getLevel(),
+                    null,
+                    0
+            );
+            state.itemRenderState = renderState;
+        } else {
+            state.itemRenderState = null;
+        }
+    }
+
+    @Override
+    public void submit(
+            DryingRackRenderState state,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState camera
+    ) {
+        if (state.itemRenderState == null) return;
 
         double itemX = 0.5;
         double itemZ = 0.5;
         float yaw = 0f;
 
-        switch (facing) {
+        switch (state.facing) {
             case NORTH -> { itemZ = 0.19; yaw = 180f; }
             case SOUTH -> { itemZ = 0.81; yaw = 0f; }
             case WEST ->  { itemX = 0.19; yaw = 90f; }
             case EAST ->  { itemX = 0.81; yaw = 270f; }
+            default -> {}
         }
 
+        poseStack.pushPose();
         poseStack.translate(itemX, 0.65, itemZ);
         poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
         poseStack.scale(0.6f, 0.6f, 0.6f);
 
-        BlockPos pos = be.getBlockPos().above();
-        int light = be.getLevel() != null ?
-                LightTexture.pack(
-                        be.getLevel().getBrightness(LightLayer.BLOCK, pos),
-                        be.getLevel().getBrightness(LightLayer.SKY, pos))
-                : packedLight;
-
-        itemRenderer.renderStatic(item, ItemDisplayContext.FIXED, light, packedOverlay,
-                poseStack, bufferSource, be.getLevel(), 0);
+        state.itemRenderState.submit(poseStack, submitNodeCollector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
 
         poseStack.popPose();
     }

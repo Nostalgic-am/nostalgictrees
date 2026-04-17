@@ -13,22 +13,29 @@ import net.minecraft.world.level.block.BeehiveBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+import net.minecraft.server.level.ServerLevel;
 
 public class AdvancedBeehiveBlock extends BeehiveBlock {
-    public static final MapCodec<AdvancedBeehiveBlock> CODEC = simpleCodec(p -> new AdvancedBeehiveBlock());
+
+    /*
+     * 26.1: Block.Properties requires an injected registry ID before the Block
+     * constructor runs (BlockBehaviour#effectiveDrops needs it). DeferredRegister.Blocks
+     * #registerBlock(name, factory, properties) auto-injects the ID; the factory just
+     * takes Properties and passes them through.
+     */
+    public static final MapCodec<AdvancedBeehiveBlock> CODEC = simpleCodec(AdvancedBeehiveBlock::new);
 
     @Override
     public MapCodec<BeehiveBlock> codec() {
         return (MapCodec) CODEC;
     }
 
-    public AdvancedBeehiveBlock() {
-        super(Properties.of()
-                .strength(2.0f)
-                .sound(net.minecraft.world.level.block.SoundType.WOOD));
+    public AdvancedBeehiveBlock(BlockBehaviour.Properties properties) {
+        super(properties);
     }
 
     // ======================== BLOCK ENTITY ========================
@@ -57,33 +64,28 @@ public class AdvancedBeehiveBlock extends BeehiveBlock {
                 serverPlayer.openMenu(beehiveBE, pos);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     // ======================== DROPS ========================
 
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        // Drop our custom inventory items
         if (!level.isClientSide()) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof AdvancedBeehiveBlockEntity beehiveBE) {
                 Containers.dropContents(level, pos, beehiveBE);
             }
         }
-        // Let vanilla handle bee release, silk touch, honeycomb drops etc.
         return super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
-            BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof AdvancedBeehiveBlockEntity beehiveBE) {
-                Containers.dropContents(level, pos, beehiveBE);
-            }
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof AdvancedBeehiveBlockEntity beehiveBE) {
+            Containers.dropContents(level, pos, beehiveBE);
         }
-        // Let vanilla handle bee release
-        super.onRemove(state, level, pos, newState, movedByPiston);
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 }

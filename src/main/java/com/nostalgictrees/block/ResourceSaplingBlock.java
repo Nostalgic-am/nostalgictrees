@@ -2,7 +2,6 @@ package com.nostalgictrees.block;
 
 import com.mojang.serialization.MapCodec;
 import com.nostalgictrees.NTBlocks;
-import com.nostalgictrees.NTItems;
 import com.nostalgictrees.block.entity.ResourceSaplingBlockEntity;
 import com.nostalgictrees.data.TreeTier;
 import net.minecraft.core.BlockPos;
@@ -10,7 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -28,7 +27,13 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class ResourceSaplingBlock extends BaseEntityBlock implements BonemealableBlock {
-    public static final MapCodec<ResourceSaplingBlock> CODEC = simpleCodec(p -> new ResourceSaplingBlock("", TreeTier.TIER_1));
+    /*
+     * 26.1: Block.Properties require a registry ID to be injected before the superclass
+     * constructor runs. DeferredRegister.Blocks#registerBlock pre-populates the id and
+     * passes the Properties through to the factory.
+     */
+    public static final MapCodec<ResourceSaplingBlock> CODEC =
+            simpleCodec(props -> new ResourceSaplingBlock("", TreeTier.TIER_1, props));
 
     @Override
     protected MapCodec<? extends BaseEntityBlock> codec() {
@@ -39,13 +44,8 @@ public class ResourceSaplingBlock extends BaseEntityBlock implements Bonemealabl
     private final String treeName;
     private final TreeTier tier;
 
-    public ResourceSaplingBlock(String treeName, TreeTier tier) {
-        super(BlockBehaviour.Properties.of()
-                .noCollission()
-                .randomTicks()
-                .instabreak()
-                .sound(SoundType.GRASS)
-        );
+    public ResourceSaplingBlock(String treeName, TreeTier tier, BlockBehaviour.Properties properties) {
+        super(properties);
         this.treeName = treeName;
         this.tier = tier;
     }
@@ -79,19 +79,19 @@ public class ResourceSaplingBlock extends BaseEntityBlock implements Bonemealabl
     // ======================== HONEYCOMB INTERACTION ========================
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
-                                              Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (level.isClientSide()) return ItemInteractionResult.SUCCESS;
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                          Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
 
         if (!stack.isEmpty()) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof ResourceSaplingBlockEntity saplingBE) {
                 if (saplingBE.tryApplyItem(stack)) {
-                    return ItemInteractionResult.SUCCESS;
+                    return InteractionResult.SUCCESS;
                 }
             }
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     // ======================== BUSH BEHAVIOR ========================
@@ -187,7 +187,7 @@ public class ResourceSaplingBlock extends BaseEntityBlock implements Bonemealabl
 
     @Override
     public boolean isBonemealSuccess(Level level, RandomSource random, BlockPos pos, BlockState state) {
-        return level.random.nextFloat() < 0.6D;
+        return level.getRandom().nextFloat() < 0.6D;
     }
 
     @Override
@@ -196,12 +196,9 @@ public class ResourceSaplingBlock extends BaseEntityBlock implements Bonemealabl
         if (be instanceof ResourceSaplingBlockEntity saplingBE) {
             int stage = saplingBE.getGrowthStage();
             if (stage >= 2) {
-                // Final stage - grow the tree
                 growTree(level, pos, random);
             } else {
-                // Advance growth stage
                 saplingBE.setGrowthStage(stage + 1);
-                // Sparkle particles to show progress
                 for (int i = 0; i < 8; i++) {
                     level.sendParticles(net.minecraft.core.particles.ParticleTypes.HAPPY_VILLAGER,
                             pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.6,
@@ -211,7 +208,6 @@ public class ResourceSaplingBlock extends BaseEntityBlock implements Bonemealabl
                 }
             }
         } else {
-            // Fallback if no block entity
             growTree(level, pos, random);
         }
     }

@@ -19,12 +19,10 @@ public class DryingRackRecipeCategory implements IRecipeCategory<DryingRecipe> {
     public static final RecipeType<DryingRecipe> RECIPE_TYPE =
             RecipeType.create(NostalgicTrees.MODID, "drying_rack", DryingRecipe.class);
 
-    private final IDrawable background;
     private final IDrawable icon;
     private final Component title;
 
     public DryingRackRecipeCategory(IGuiHelper guiHelper) {
-        this.background = guiHelper.createBlankDrawable(120, 36);
         this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK,
                 new ItemStack(NTItems.DRYING_RACK_ITEM.get()));
         this.title = Component.translatable("gui.nostalgictrees.drying_rack");
@@ -41,8 +39,13 @@ public class DryingRackRecipeCategory implements IRecipeCategory<DryingRecipe> {
     }
 
     @Override
-    public IDrawable getBackground() {
-        return background;
+    public int getWidth() {
+        return 120;
+    }
+
+    @Override
+    public int getHeight() {
+        return 36;
     }
 
     @Override
@@ -57,9 +60,9 @@ public class DryingRackRecipeCategory implements IRecipeCategory<DryingRecipe> {
                 .addItemStack(recipe.getInputStack());
 
         // Drying rack as catalyst in the middle
-        builder.addSlot(RecipeIngredientRole.CATALYST, 50, 9)
+        builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, 50, 9)
                 .addItemStack(new ItemStack(NTItems.DRYING_RACK_ITEM.get()))
-                .addTooltipCallback((recipeSlotView, tooltip) -> {
+                .addRichTooltipCallback((recipeSlotView, tooltip) -> {
                     tooltip.add(Component.literal(String.format("%.1f seconds", recipe.getDryingTime() / 20.0)));
                 });
 

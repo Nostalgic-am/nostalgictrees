@@ -8,26 +8,30 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.animal.Bee;
+import net.minecraft.world.entity.animal.bee.Bee;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
+
+import com.mojang.serialization.Codec;
 
 import java.util.*;
 
@@ -36,10 +40,20 @@ import java.util.*;
  * - Which honeycombs have been applied (right-clicked)
  * - Whether the catalyst item has been applied (if recipe requires one)
  * - How many times bees have pollinated this sapling
+ *
+ * 26.1 changes:
+ *   - Level#random           -> level.getRandom()
+ *   - Level#getRecipeManager -> level.getServer().getRecipeManager()
+ *   - RecipeManager#getAllRecipesFor(type) -> filter from getRecipes()
+ *   - Bee#savedFlowerPos private -> bee.hasSavedFlowerPos()/getSavedFlowerPos()
+ *   - saveAdditional/loadAdditional now take ValueOutput/ValueInput (codec-based)
  */
 public class ResourceSaplingBlockEntity extends BlockEntity {
 
-    private final List<ResourceLocation> appliedHoneycombs = new ArrayList<>();
+    private static final Codec<List<Identifier>> IDENTIFIER_LIST_CODEC = Identifier.CODEC.listOf();
+    private static final Codec<List<UUID>> UUID_LIST_CODEC = UUIDUtil.CODEC.listOf();
+
+    private final List<Identifier> appliedHoneycombs = new ArrayList<>();
     private boolean catalystApplied = false;
     private int pollinationCount = 0;
     private final Set<UUID> countedBeeUUIDs = new HashSet<>();
@@ -53,18 +67,13 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
 
     public boolean tryApplyItem(ItemStack stack) {
         if (level == null || level.isClientSide()) return false;
-
-        // First try honeycombs
         if (tryApplyHoneycomb(stack)) return true;
-
-        // Then try catalyst
         if (tryApplyCatalyst(stack)) return true;
-
         return false;
     }
 
     private boolean tryApplyHoneycomb(ItemStack honeycombStack) {
-        ResourceLocation honeycombId = getItemId(honeycombStack);
+        Identifier honeycombId = getItemId(honeycombStack);
         if (honeycombId == null) return false;
 
         List<MutationRecipe> allRecipes = findAllRecipes();
@@ -78,13 +87,13 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
 
         // Only accept if adding this honeycomb keeps at least one recipe fully satisfiable
         boolean accepted = false;
-        List<ResourceLocation> hypothetical = new ArrayList<>(appliedHoneycombs);
+        List<Identifier> hypothetical = new ArrayList<>(appliedHoneycombs);
         hypothetical.add(honeycombId);
 
         for (MutationRecipe recipe : allRecipes) {
-            List<ResourceLocation> needed = new ArrayList<>(recipe.getHoneycombs());
+            List<Identifier> needed = new ArrayList<>(recipe.getHoneycombs());
             boolean valid = true;
-            for (ResourceLocation applied : hypothetical) {
+            for (Identifier applied : hypothetical) {
                 if (!needed.remove(applied)) {
                     valid = false;
                     break;
@@ -108,9 +117,9 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
 
             for (int i = 0; i < 10; i++) {
                 serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER,
-                        worldPosition.getX() + 0.5 + (level.random.nextDouble() - 0.5) * 0.8,
-                        worldPosition.getY() + 0.5 + level.random.nextDouble() * 0.5,
-                        worldPosition.getZ() + 0.5 + (level.random.nextDouble() - 0.5) * 0.8,
+                        worldPosition.getX() + 0.5 + (level.getRandom().nextDouble() - 0.5) * 0.8,
+                        worldPosition.getY() + 0.5 + level.getRandom().nextDouble() * 0.5,
+                        worldPosition.getZ() + 0.5 + (level.getRandom().nextDouble() - 0.5) * 0.8,
                         1, 0, 0, 0, 0);
             }
         }
@@ -125,17 +134,13 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
         if (recipe == null) return false;
         if (!recipe.hasCatalyst()) return false;
 
-        // All combs must be applied first
         if (appliedHoneycombs.size() < recipe.getHoneycombs().size()) return false;
 
-        // Check if the held item matches the catalyst
-        ResourceLocation catalystId = getItemId(catalystStack);
+        Identifier catalystId = getItemId(catalystStack);
         if (!recipe.getCatalyst().equals(catalystId)) return false;
 
-        // Check if player has enough
         if (catalystStack.getCount() < recipe.getCatalystCount()) return false;
 
-        // Apply catalyst
         catalystStack.shrink(recipe.getCatalystCount());
         catalystApplied = true;
         setChanged();
@@ -144,12 +149,11 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
             serverLevel.playSound(null, worldPosition, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 1.0f, 1.0f);
 
-            // Special catalyst particles — dragon breath / soul fire
             for (int i = 0; i < 20; i++) {
                 serverLevel.sendParticles(ParticleTypes.SOUL_FIRE_FLAME,
-                        worldPosition.getX() + 0.5 + (level.random.nextDouble() - 0.5) * 0.8,
-                        worldPosition.getY() + 0.3 + level.random.nextDouble() * 0.7,
-                        worldPosition.getZ() + 0.5 + (level.random.nextDouble() - 0.5) * 0.8,
+                        worldPosition.getX() + 0.5 + (level.getRandom().nextDouble() - 0.5) * 0.8,
+                        worldPosition.getY() + 0.3 + level.getRandom().nextDouble() * 0.7,
+                        worldPosition.getZ() + 0.5 + (level.getRandom().nextDouble() - 0.5) * 0.8,
                         1, 0, 0.05, 0, 0.02);
             }
         }
@@ -183,7 +187,7 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
 
             if (be.countedBeeUUIDs.contains(beeId)) continue;
 
-            if (bee.hasNectar() && bee.savedFlowerPos != null && bee.savedFlowerPos.equals(pos)) {
+            if (bee.hasNectar() && bee.hasSavedFlowerPos() && bee.getSavedFlowerPos().equals(pos)) {
                 be.pollinationCount++;
                 be.countedBeeUUIDs.add(beeId);
                 be.setChanged();
@@ -191,9 +195,9 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
                 if (level instanceof ServerLevel serverLevel) {
                     for (int i = 0; i < 15; i++) {
                         serverLevel.sendParticles(ParticleTypes.WAX_ON,
-                                pos.getX() + 0.5 + (level.random.nextDouble() - 0.5),
-                                pos.getY() + 0.5 + level.random.nextDouble() * 0.5,
-                                pos.getZ() + 0.5 + (level.random.nextDouble() - 0.5),
+                                pos.getX() + 0.5 + (level.getRandom().nextDouble() - 0.5),
+                                pos.getY() + 0.5 + level.getRandom().nextDouble() * 0.5,
+                                pos.getZ() + 0.5 + (level.getRandom().nextDouble() - 0.5),
                                 1, 0, 0, 0, 0);
                     }
 
@@ -207,7 +211,6 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
             }
         }
 
-        // Ambient particles while waiting for bees
         if (level instanceof ServerLevel serverLevel && level.getGameTime() % 40 == 0) {
             serverLevel.sendParticles(ParticleTypes.ENCHANT,
                     pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5,
@@ -216,9 +219,9 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
     }
 
     private void completeMutation(MutationRecipe recipe) {
-        if (level == null || !(level instanceof ServerLevel serverLevel)) return;
+        if (!(level instanceof ServerLevel serverLevel)) return;
 
-        ResourceLocation resultId = recipe.getResultSapling();
+        Identifier resultId = recipe.getResultSapling();
         String path = resultId.getPath();
         String treeName = path.endsWith("_sapling") ? path.substring(0, path.length() - 8) : path;
 
@@ -230,9 +233,9 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
 
         for (int i = 0; i < 30; i++) {
             serverLevel.sendParticles(ParticleTypes.TOTEM_OF_UNDYING,
-                    worldPosition.getX() + 0.5 + (level.random.nextDouble() - 0.5) * 1.5,
-                    worldPosition.getY() + 0.5 + level.random.nextDouble(),
-                    worldPosition.getZ() + 0.5 + (level.random.nextDouble() - 0.5) * 1.5,
+                    worldPosition.getX() + 0.5 + (level.getRandom().nextDouble() - 0.5) * 1.5,
+                    worldPosition.getY() + 0.5 + level.getRandom().nextDouble(),
+                    worldPosition.getZ() + 0.5 + (level.getRandom().nextDouble() - 0.5) * 1.5,
                     1, 0, 0.1, 0, 0.15);
         }
 
@@ -244,17 +247,20 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
 
     public List<MutationRecipe> findAllRecipes() {
         if (level == null) return List.of();
+        MinecraftServer server = level.getServer();
+        if (server == null) return List.of(); // client-side or pre-server
 
         Block thisBlock = getBlockState().getBlock();
-        ResourceLocation thisBlockId = BuiltInRegistries.BLOCK.getKey(thisBlock);
+        Identifier thisBlockId = BuiltInRegistries.BLOCK.getKey(thisBlock);
 
-        List<RecipeHolder<MutationRecipe>> recipes = level.getRecipeManager()
-                .getAllRecipesFor(NTRecipes.MUTATION_TYPE.get());
-
+        RecipeManager recipeManager = server.getRecipeManager();
         List<MutationRecipe> matching = new ArrayList<>();
-        for (RecipeHolder<MutationRecipe> holder : recipes) {
-            if (holder.value().getBaseSapling().equals(thisBlockId)) {
-                matching.add(holder.value());
+
+        // 26.1: no more getAllRecipesFor(type) — filter manually.
+        for (RecipeHolder<?> holder : recipeManager.getRecipes()) {
+            if (holder.value() instanceof MutationRecipe recipe
+                    && recipe.getBaseSapling().equals(thisBlockId)) {
+                matching.add(recipe);
             }
         }
         return matching;
@@ -268,9 +274,9 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
         List<MutationRecipe> allRecipes = findAllRecipes();
 
         for (MutationRecipe recipe : allRecipes) {
-            List<ResourceLocation> needed = new ArrayList<>(recipe.getHoneycombs());
+            List<Identifier> needed = new ArrayList<>(recipe.getHoneycombs());
             boolean matches = true;
-            for (ResourceLocation applied : appliedHoneycombs) {
+            for (Identifier applied : appliedHoneycombs) {
                 if (!needed.remove(applied)) {
                     matches = false;
                     break;
@@ -283,11 +289,11 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
 
     // ======================== HELPERS ========================
 
-    private ResourceLocation getItemId(ItemStack stack) {
+    private Identifier getItemId(ItemStack stack) {
         return BuiltInRegistries.ITEM.getKey(stack.getItem());
     }
 
-    public List<ResourceLocation> getAppliedHoneycombs() {
+    public List<Identifier> getAppliedHoneycombs() {
         return Collections.unmodifiableList(appliedHoneycombs);
     }
 
@@ -308,60 +314,41 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
 
     // ======================== NBT ========================
 
+    /*
+     * 26.1: saveAdditional/loadAdditional take ValueOutput/ValueInput.
+     * Using Codecs to persist collections is much simpler than the old
+     * ListTag/StringTag/CompoundTag gymnastics.
+     */
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-
-        ListTag combsList = new ListTag();
-        for (ResourceLocation comb : appliedHoneycombs) {
-            combsList.add(StringTag.valueOf(comb.toString()));
-        }
-        tag.put("AppliedHoneycombs", combsList);
-        tag.putBoolean("CatalystApplied", catalystApplied);
-        tag.putInt("PollinationCount", pollinationCount);
-        tag.putInt("GrowthStage", growthStage);
-
-        ListTag uuidList = new ListTag();
-        for (UUID uuid : countedBeeUUIDs) {
-            CompoundTag uuidTag = new CompoundTag();
-            uuidTag.putUUID("UUID", uuid);
-            uuidList.add(uuidTag);
-        }
-        tag.put("CountedBees", uuidList);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.store("AppliedHoneycombs", IDENTIFIER_LIST_CODEC, appliedHoneycombs);
+        output.putBoolean("CatalystApplied", catalystApplied);
+        output.putInt("PollinationCount", pollinationCount);
+        output.putInt("GrowthStage", growthStage);
+        output.store("CountedBees", UUID_LIST_CODEC, new ArrayList<>(countedBeeUUIDs));
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
 
         appliedHoneycombs.clear();
-        if (tag.contains("AppliedHoneycombs")) {
-            ListTag combsList = tag.getList("AppliedHoneycombs", Tag.TAG_STRING);
-            for (int i = 0; i < combsList.size(); i++) {
-                appliedHoneycombs.add(ResourceLocation.parse(combsList.getString(i)));
-            }
-        }
+        appliedHoneycombs.addAll(input.read("AppliedHoneycombs", IDENTIFIER_LIST_CODEC).orElse(List.of()));
 
-        catalystApplied = tag.getBoolean("CatalystApplied");
-        pollinationCount = tag.getInt("PollinationCount");
-        growthStage = tag.getInt("GrowthStage");
+        catalystApplied = input.getBooleanOr("CatalystApplied", false);
+        pollinationCount = input.getIntOr("PollinationCount", 0);
+        growthStage = input.getIntOr("GrowthStage", 0);
 
         countedBeeUUIDs.clear();
-        if (tag.contains("CountedBees")) {
-            ListTag uuidList = tag.getList("CountedBees", Tag.TAG_COMPOUND);
-            for (int i = 0; i < uuidList.size(); i++) {
-                countedBeeUUIDs.add(uuidList.getCompound(i).getUUID("UUID"));
-            }
-        }
+        countedBeeUUIDs.addAll(input.read("CountedBees", UUID_LIST_CODEC).orElse(List.of()));
     }
 
     // ======================== SYNC ========================
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        saveAdditional(tag, registries);
-        return tag;
+        return super.getUpdateTag(registries);
     }
 
     @Nullable

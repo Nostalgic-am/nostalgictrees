@@ -1,12 +1,12 @@
 package com.nostalgictrees.data;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import java.util.Optional;
 
 public record ResourceTreeType(
         String name,
         TreeTier tier,
-        ResourceLocation outputItem,
+        Identifier outputItem,
         int outputCount,
         int color,
         Optional<String> requiredMod

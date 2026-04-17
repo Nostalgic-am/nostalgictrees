@@ -6,6 +6,7 @@ import com.nostalgictrees.data.NTTreeRegistry;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
 import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackSelectionConfig;
@@ -16,7 +17,6 @@ import net.minecraft.network.chat.Component;
 import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 import net.minecraft.server.packs.PackResources;
-
 import java.util.Optional;
 
 @Mod(NostalgicTrees.MODID)
@@ -29,7 +29,6 @@ public class NostalgicTrees {
         LOGGER.info("Nostalgic Trees initializing...");
 
         NTTreeRegistry.init();
-
         // Generate all resources in memory — no files written to config folder
         generatedPack = DynamicResourceGenerator.generate(NTTreeRegistry.getAllTrees());
 
@@ -40,12 +39,18 @@ public class NostalgicTrees {
 
         modEventBus.addListener(this::addPackFinders);
 
+        // Client-only: register tint color handlers for tree blocks.
+        // FML 11 removed the 'bus = Bus.MOD' parameter from @EventBusSubscriber, so mod-bus
+        // event handlers (like RegisterColorHandlersEvent) must be wired up manually here.
+        if (FMLEnvironment.getDist().isClient()) {
+            com.nostalgictrees.event.NTColorHandler.register(modEventBus);
+        }
+
         LOGGER.info("Nostalgic Trees initialized with {} trees!", NTTreeRegistry.getAllTrees().size());
     }
 
     private void addPackFinders(AddPackFindersEvent event) {
         if (generatedPack == null) return;
-
         event.addRepositorySource(consumer -> {
             Pack pack = Pack.readMetaAndCreate(
                     generatedPack.location(),

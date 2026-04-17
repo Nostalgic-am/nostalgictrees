@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.nostalgictrees.NostalgicTrees;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.*;
@@ -41,7 +41,7 @@ public class NTTreeRegistry {
 
                     if (reqMod.isPresent() && !net.neoforged.fml.ModList.get().isLoaded(reqMod.get())) continue;
 
-                    TREES.put(name, new ResourceTreeType(name, tier, ResourceLocation.parse(output), count, color, reqMod));
+                    TREES.put(name, new ResourceTreeType(name, tier, Identifier.parse(output), count, color, reqMod));
                 } catch (Exception e) {
                     NostalgicTrees.LOGGER.error("Failed to load tree: {}", file.getFileName(), e);
                 }

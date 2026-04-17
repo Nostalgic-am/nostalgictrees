@@ -7,7 +7,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -20,15 +19,16 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
+import net.minecraft.server.level.ServerLevel;
 
 public class DryingRackBlock extends BaseEntityBlock {
-    public static final MapCodec<DryingRackBlock> CODEC = simpleCodec(p -> new DryingRackBlock());
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final MapCodec<DryingRackBlock> CODEC = simpleCodec(DryingRackBlock::new);
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 
     private static final VoxelShape SHAPE_NORTH = Block.box(0, 14, 0, 16, 16, 4);
     private static final VoxelShape SHAPE_SOUTH = Block.box(0, 14, 12, 16, 16, 16);
@@ -40,11 +40,13 @@ public class DryingRackBlock extends BaseEntityBlock {
         return CODEC;
     }
 
-    public DryingRackBlock() {
-        super(BlockBehaviour.Properties.of()
-                .strength(1.0f)
-                .sound(SoundType.WOOD)
-                .noOcclusion());
+    /*
+     * 26.1: Block.Properties require a registry ID to be injected before the superclass
+     * constructor runs. NeoForge's DeferredRegister.Blocks#registerBlock(name, factory, properties)
+     * auto-injects the ID — the factory receives those pre-baked Properties and passes them through.
+     */
+    public DryingRackBlock(BlockBehaviour.Properties properties) {
+        super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
@@ -70,7 +72,7 @@ public class DryingRackBlock extends BaseEntityBlock {
         if (clickedFace.getAxis().isHorizontal()) {
             return this.defaultBlockState().setValue(FACING, clickedFace.getOpposite());
         }
-        return null; // Can't place on top or bottom
+        return null;
     }
 
     @Override
@@ -93,9 +95,9 @@ public class DryingRackBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
-                                              Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (level.isClientSide()) return ItemInteractionResult.SUCCESS;
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                          Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
 
         BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof DryingRackBlockEntity rack) {
@@ -105,10 +107,10 @@ public class DryingRackBlock extends BaseEntityBlock {
                 rack.setItem(toPlace);
                 stack.shrink(1);
                 level.sendBlockUpdated(pos, state, state, 3);
-                return ItemInteractionResult.SUCCESS;
+                return InteractionResult.SUCCESS;
             }
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
@@ -131,14 +133,11 @@ public class DryingRackBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
-            BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof DryingRackBlockEntity rack && !rack.getItem().isEmpty()) {
-                Containers.dropItemStack(level, pos.getX(), pos.getY() + 0.5, pos.getZ(),
-                        rack.getItem());
-            }
-            super.onRemove(state, level, pos, newState, movedByPiston);
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof DryingRackBlockEntity rack && !rack.getItem().isEmpty()) {
+            Containers.dropItemStack(level, pos.getX(), pos.getY() + 0.5, pos.getZ(), rack.getItem());
         }
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 }

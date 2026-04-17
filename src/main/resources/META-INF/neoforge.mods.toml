@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="${neo_version_range}"
+loaderVersion="[11,)"
 
 license="${mod_license}"
 

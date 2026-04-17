@@ -39,20 +39,34 @@ public class NTBlocks {
     public static final DeferredRegister<MenuType<?>> MENU_TYPES =
             DeferredRegister.create(Registries.MENU, NostalgicTrees.MODID);
 
+    /*
+     * 26.1: BlockBehaviour#effectiveDrops() requires Properties.id to be set before the
+     * Block constructor runs. Use registerBlock(name, factory, Supplier<Properties>) —
+     * NeoForge pre-populates the id into the Properties and passes them to the factory.
+     * The properties must be wrapped in a Supplier so NeoForge can call .setId(...) on
+     * a fresh copy per block.
+     */
+
     // === Resource Beehive ===
-    public static final DeferredBlock<Block> ADVANCED_BEEHIVE = BLOCKS.register("advanced_beehive",
-            AdvancedBeehiveBlock::new);
+    public static final DeferredBlock<Block> ADVANCED_BEEHIVE = BLOCKS.registerBlock(
+            "advanced_beehive",
+            AdvancedBeehiveBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .strength(2.0f)
+                    .sound(SoundType.WOOD));
 
     // === Resource Beehive Block Entity ===
+    // 26.1: BlockEntityType.Builder is gone; use the public varargs constructor directly.
     public static final Supplier<BlockEntityType<AdvancedBeehiveBlockEntity>> ADVANCED_BEEHIVE_BE =
             BLOCK_ENTITY_TYPES.register("advanced_beehive",
-                    () -> BlockEntityType.Builder.of(AdvancedBeehiveBlockEntity::new,
-                            ADVANCED_BEEHIVE.get()).build(null));
+                    () -> new BlockEntityType<>(AdvancedBeehiveBlockEntity::new,
+                            ADVANCED_BEEHIVE.get()));
 
     // === Resource Beehive Menu ===
     public static final Supplier<MenuType<AdvancedBeehiveMenu>> ADVANCED_BEEHIVE_MENU =
             MENU_TYPES.register("advanced_beehive",
                     () -> IMenuTypeExtension.create(AdvancedBeehiveMenu::new));
+
     // === POI Types (so bees discover our hive via BeeLocateHiveGoal) ===
     public static final DeferredRegister<PoiType> POI_TYPES =
             DeferredRegister.create(Registries.POINT_OF_INTEREST_TYPE, NostalgicTrees.MODID);
@@ -65,13 +79,18 @@ public class NTBlocks {
                             0, 1));
 
     // === Drying Rack ===
-    public static final DeferredBlock<Block> DRYING_RACK = BLOCKS.register("drying_rack",
-            DryingRackBlock::new);
+    public static final DeferredBlock<Block> DRYING_RACK = BLOCKS.registerBlock(
+            "drying_rack",
+            DryingRackBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .strength(1.0f)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion());
 
     public static final Supplier<BlockEntityType<DryingRackBlockEntity>> DRYING_RACK_BE =
             BLOCK_ENTITY_TYPES.register("drying_rack",
-                    () -> BlockEntityType.Builder.of(DryingRackBlockEntity::new,
-                            DRYING_RACK.get()).build(null));
+                    () -> new BlockEntityType<>(DryingRackBlockEntity::new,
+                            DRYING_RACK.get()));
 
     // === Tree blocks ===
     private static final Map<String, DeferredBlock<Block>> LOG_BLOCKS = new HashMap<>();
@@ -88,20 +107,51 @@ public class NTBlocks {
     // === Sapling Block Entity (registered after all saplings are created) ===
     public static final Supplier<BlockEntityType<ResourceSaplingBlockEntity>> SAPLING_BE =
             BLOCK_ENTITY_TYPES.register("resource_sapling",
-                    () -> BlockEntityType.Builder.of(ResourceSaplingBlockEntity::new,
-                            SAPLING_BLOCKS.values().stream().map(DeferredBlock::get).toArray(Block[]::new)
-                    ).build(null));
+                    () -> new BlockEntityType<>(ResourceSaplingBlockEntity::new,
+                            SAPLING_BLOCKS.values().stream().map(DeferredBlock::get).toArray(Block[]::new)));
 
     private static void registerTreeBlocks(ResourceTreeType tree) {
-        String name = tree.name();
-        LOG_BLOCKS.put(name, BLOCKS.register(tree.logId(),
-                () -> new ResourceLogBlock(name, tree.tier())));
-        STRIPPED_LOG_BLOCKS.put(name, BLOCKS.register(tree.strippedLogId(),
-                () -> new Block(BlockBehaviour.Properties.of().strength(2.0f).sound(SoundType.WOOD))));
-        LEAVES_BLOCKS.put(name, BLOCKS.register(tree.leavesId(),
-                () -> new ResourceLeavesBlock(name, tree.tier())));
-        SAPLING_BLOCKS.put(name, BLOCKS.register(tree.saplingId(),
-                () -> new ResourceSaplingBlock(name, tree.tier())));
+        final String name = tree.name();
+
+        // Log — custom Block with treeName + tier, mines with mallet tool
+        LOG_BLOCKS.put(name, BLOCKS.registerBlock(
+                tree.logId(),
+                props -> new ResourceLogBlock(name, tree.tier(), props),
+                () -> BlockBehaviour.Properties.of()
+                        .strength(2.0f)
+                        .sound(SoundType.WOOD)
+                        .requiresCorrectToolForDrops()));
+
+        // Stripped Log — plain Block
+        STRIPPED_LOG_BLOCKS.put(name, BLOCKS.registerBlock(
+                tree.strippedLogId(),
+                Block::new,
+                () -> BlockBehaviour.Properties.of()
+                        .strength(2.0f)
+                        .sound(SoundType.WOOD)));
+
+        // Leaves — ResourceLeavesBlock with custom particle color
+        LEAVES_BLOCKS.put(name, BLOCKS.registerBlock(
+                tree.leavesId(),
+                props -> new ResourceLeavesBlock(name, tree.tier(), props),
+                () -> BlockBehaviour.Properties.of()
+                        .strength(0.2f)
+                        .randomTicks()
+                        .sound(SoundType.GRASS)
+                        .noOcclusion()
+                        .isValidSpawn((state, level, pos, type) -> false)
+                        .isSuffocating((state, level, pos) -> false)
+                        .isViewBlocking((state, level, pos) -> false)));
+
+        // Sapling — ResourceSaplingBlock
+        SAPLING_BLOCKS.put(name, BLOCKS.registerBlock(
+                tree.saplingId(),
+                props -> new ResourceSaplingBlock(name, tree.tier(), props),
+                () -> BlockBehaviour.Properties.of()
+                        .noCollision()
+                        .randomTicks()
+                        .instabreak()
+                        .sound(SoundType.GRASS)));
     }
 
     public static Block getLogBlock(String treeName) {

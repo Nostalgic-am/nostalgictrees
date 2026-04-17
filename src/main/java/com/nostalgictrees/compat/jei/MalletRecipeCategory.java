@@ -11,7 +11,6 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 public class MalletRecipeCategory implements IRecipeCategory<MalletRecipe> {
@@ -19,12 +18,10 @@ public class MalletRecipeCategory implements IRecipeCategory<MalletRecipe> {
     public static final RecipeType<MalletRecipe> RECIPE_TYPE =
             RecipeType.create(NostalgicTrees.MODID, "mallet_processing", MalletRecipe.class);
 
-    private final IDrawable background;
     private final IDrawable icon;
     private final Component title;
 
     public MalletRecipeCategory(IGuiHelper guiHelper) {
-        this.background = guiHelper.createBlankDrawable(120, 36);
         this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK,
                 new ItemStack(NTItems.IRON_MALLET.get()));
         this.title = Component.translatable("gui.nostalgictrees.mallet_processing");
@@ -41,8 +38,13 @@ public class MalletRecipeCategory implements IRecipeCategory<MalletRecipe> {
     }
 
     @Override
-    public IDrawable getBackground() {
-        return background;
+    public int getWidth() {
+        return 120;
+    }
+
+    @Override
+    public int getHeight() {
+        return 36;
     }
 
     @Override
@@ -56,8 +58,8 @@ public class MalletRecipeCategory implements IRecipeCategory<MalletRecipe> {
         builder.addSlot(RecipeIngredientRole.INPUT, 1, 9)
                 .addItemStack(recipe.input());
 
-        // All mallet tiers as catalyst in the middle
-        builder.addSlot(RecipeIngredientRole.CATALYST, 50, 9)
+        // All mallet tiers as crafting station in the middle
+        builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, 50, 9)
                 .addItemStack(new ItemStack(NTItems.WOODEN_MALLET.get()))
                 .addItemStack(new ItemStack(NTItems.STONE_MALLET.get()))
                 .addItemStack(new ItemStack(NTItems.IRON_MALLET.get()))

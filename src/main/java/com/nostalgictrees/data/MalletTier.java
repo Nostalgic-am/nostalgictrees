@@ -1,28 +1,27 @@
 package com.nostalgictrees.data;
 
-import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.Tiers;
+import net.minecraft.world.item.ToolMaterial;
 
 public enum MalletTier {
-    WOOD(Tiers.WOOD, 59, 1.0f),
-    STONE(Tiers.STONE, 131, 0.85f),
-    IRON(Tiers.IRON, 250, 0.7f),
-    GOLD(Tiers.GOLD, 32, 0.5f),     // Gold: low durability but very efficient
-    DIAMOND(Tiers.DIAMOND, 1561, 0.5f),
-    NETHERITE(Tiers.NETHERITE, 2031, 0.35f);
+    WOOD(ToolMaterial.WOOD, 59, 1.0f),
+    STONE(ToolMaterial.STONE, 131, 0.85f),
+    IRON(ToolMaterial.IRON, 250, 0.7f),
+    GOLD(ToolMaterial.GOLD, 32, 0.5f),     // Gold: low durability but very efficient
+    DIAMOND(ToolMaterial.DIAMOND, 1561, 0.5f),
+    NETHERITE(ToolMaterial.NETHERITE, 2031, 0.35f);
 
-    private final Tier vanillaTier;
+    private final ToolMaterial vanillaMaterial;
     private final int maxDurability;
     private final float efficiencyMultiplier;
 
-    MalletTier(Tier vanillaTier, int maxDurability, float efficiencyMultiplier) {
-        this.vanillaTier = vanillaTier;
+    MalletTier(ToolMaterial vanillaMaterial, int maxDurability, float efficiencyMultiplier) {
+        this.vanillaMaterial = vanillaMaterial;
         this.maxDurability = maxDurability;
         this.efficiencyMultiplier = efficiencyMultiplier;
     }
 
-    public Tier getVanillaTier() {
-        return vanillaTier;
+    public ToolMaterial getVanillaMaterial() {
+        return vanillaMaterial;
     }
 
     public int getMaxDurability() {
