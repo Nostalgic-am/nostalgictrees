@@ -14,24 +14,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Handles syncing of DryingRecipe and MutationRecipe between server and client.
- *
- * 26.1 / 1.21.6 removed Level#getRecipeManager. Clients no longer have direct access
- * to the recipe manager — only RecipePropertySet (for slot-restriction logic) and
- * RecipeDisplays for unlocked recipes get synced by default. Custom recipe types
- * that need to be shown in JEI must be explicitly synced.
- *
- * NeoForge provides the OnDatapackSyncEvent (server) / RecipesReceivedEvent (client)
- * pair for exactly this purpose. Registration is on the GAME event bus (not mod bus).
- *
- * OnDatapackSyncEvent fires:
- *   - When a player joins the server (covers login)
- *   - When /reload is invoked (covers datapack reloads)
- *
- * Uses the StreamCodec defined on the Recipe classes themselves, so no custom packet
- * plumbing is needed.
- */
 public final class NTRecipeSyncHandler {
 
     // Client-side caches. Populated by recipesReceived(). Read by NTJEIPlugin during

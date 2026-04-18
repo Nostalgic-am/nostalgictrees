@@ -39,12 +39,7 @@ public class DryingRackBlock extends BaseEntityBlock {
     protected MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
-
-    /*
-     * 26.1: Block.Properties require a registry ID to be injected before the superclass
-     * constructor runs. NeoForge's DeferredRegister.Blocks#registerBlock(name, factory, properties)
-     * auto-injects the ID — the factory receives those pre-baked Properties and passes them through.
-     */
+    
     public DryingRackBlock(BlockBehaviour.Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));

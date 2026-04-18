@@ -21,12 +21,6 @@ import net.minecraft.server.level.ServerLevel;
 
 public class AdvancedBeehiveBlock extends BeehiveBlock {
 
-    /*
-     * 26.1: Block.Properties requires an injected registry ID before the Block
-     * constructor runs (BlockBehaviour#effectiveDrops needs it). DeferredRegister.Blocks
-     * #registerBlock(name, factory, properties) auto-injects the ID; the factory just
-     * takes Properties and passes them through.
-     */
     public static final MapCodec<AdvancedBeehiveBlock> CODEC = simpleCodec(AdvancedBeehiveBlock::new);
 
     @Override

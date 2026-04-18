@@ -12,16 +12,6 @@ import net.minecraft.world.level.block.state.BlockState;
 public class MalletItem extends Item {
     private final MalletTier malletTier;
 
-    /*
-     * 26.1: Like Block.Properties, Item.Properties require a registry ID to be injected
-     * before the Item constructor runs (Item#<init> calls effectiveDescriptionId which
-     * reads itemIdOrThrow). NeoForge's DeferredRegister.Items#registerItem pre-populates
-     * the id — so the constructor must accept Properties as a parameter rather than
-     * building them internally.
-     *
-     * Also note: Item#isEnchantable / #getEnchantmentValue are gone in 26.1 —
-     * enchantability is set via Properties.enchantable(int) at construction time.
-     */
     public MalletItem(MalletTier malletTier, Item.Properties properties) {
         super(properties);
         this.malletTier = malletTier;

@@ -39,14 +39,6 @@ public class NTBlocks {
     public static final DeferredRegister<MenuType<?>> MENU_TYPES =
             DeferredRegister.create(Registries.MENU, NostalgicTrees.MODID);
 
-    /*
-     * 26.1: BlockBehaviour#effectiveDrops() requires Properties.id to be set before the
-     * Block constructor runs. Use registerBlock(name, factory, Supplier<Properties>) —
-     * NeoForge pre-populates the id into the Properties and passes them to the factory.
-     * The properties must be wrapped in a Supplier so NeoForge can call .setId(...) on
-     * a fresh copy per block.
-     */
-
     // === Resource Beehive ===
     public static final DeferredBlock<Block> ADVANCED_BEEHIVE = BLOCKS.registerBlock(
             "advanced_beehive",

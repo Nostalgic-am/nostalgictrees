@@ -32,10 +32,6 @@ public class InMemoryPackResources implements PackResources {
         this.locationInfo = locationInfo;
         resources.put(PackType.CLIENT_RESOURCES, new HashMap<>());
         resources.put(PackType.SERVER_DATA, new HashMap<>());
-
-        // Build pack.mcmeta JSON
-        // 26.1: Packs declaring pack_format > 64 MUST include min_format and max_format
-        // or the loader throws JsonParseException at pack discovery.
         packMeta = new JsonObject();
         JsonObject pack = new JsonObject();
         pack.addProperty("description", "Nostalgic Trees Generated Resources");
@@ -108,11 +104,6 @@ public class InMemoryPackResources implements PackResources {
         return namespaces;
     }
 
-    /*
-     * 26.1 change: MetadataSectionSerializer<T> → MetadataSectionType<T>.
-     * Old fromJson(JsonObject) method is gone; MetadataSectionType is now a record
-     * holding a Codec<T> which we use to parse the JSON element.
-     */
     @Nullable
     @Override
     public <T> T getMetadataSection(MetadataSectionType<T> metadataType) throws IOException {

@@ -17,16 +17,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-/*
- * 26.1 BlockEntityRenderer migration:
- *   - Split into extractRenderState + submit phases (two-phase renderer).
- *   - ItemRenderer.renderStatic removed; use ItemModelResolver + ItemStackRenderState.
- *   - MultiBufferSource -> SubmitNodeCollector in the submit phase.
- *
- * Rendering logic matches the 1.21.1 original: hang the item below the shelf like an
- * item frame, using ItemDisplayContext.FIXED (vertical wall-mount orientation).
- * No X-axis rotation — that would lay the item flat, which is campfire behaviour.
- */
 public class DryingRackRenderer implements BlockEntityRenderer<DryingRackBlockEntity, DryingRackRenderState> {
     private final ItemModelResolver itemModelResolver;
 
@@ -75,10 +65,6 @@ public class DryingRackRenderer implements BlockEntityRenderer<DryingRackBlockEn
             CameraRenderState camera
     ) {
         if (state.itemRenderState == null || state.itemRenderState.isEmpty()) return;
-
-        // Position the item hanging below the shelf. The shelf model occupies y=14..16
-        // and z=0..4 (facing north). Y=0.65 puts the item hanging just below the shelf;
-        // the X/Z offset based on facing centers it on the shelf surface.
         double itemX = 0.5;
         double itemZ = 0.5;
         float yaw = 0f;

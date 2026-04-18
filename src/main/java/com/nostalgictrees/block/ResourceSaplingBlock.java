@@ -27,11 +27,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class ResourceSaplingBlock extends BaseEntityBlock implements BonemealableBlock {
-    /*
-     * 26.1: Block.Properties require a registry ID to be injected before the superclass
-     * constructor runs. DeferredRegister.Blocks#registerBlock pre-populates the id and
-     * passes the Properties through to the factory.
-     */
+
     public static final MapCodec<ResourceSaplingBlock> CODEC =
             simpleCodec(props -> new ResourceSaplingBlock("", TreeTier.TIER_1, props));
 

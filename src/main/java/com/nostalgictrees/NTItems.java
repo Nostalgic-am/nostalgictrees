@@ -17,14 +17,6 @@ import java.util.Map;
 public class NTItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(NostalgicTrees.MODID);
 
-    /*
-     * 26.1: Item.Properties require a registry ID to be injected before the Item
-     * constructor runs. DeferredRegister.Items#registerItem(name, factory, Supplier<Properties>)
-     * auto-injects the ID — the factory takes Properties and passes them to the Item.
-     * Properties are wrapped in a Supplier so NeoForge can create a fresh copy per item
-     * and call .setId(...) on it.
-     */
-
     // === Mallets ===
     public static final DeferredItem<Item> WOODEN_MALLET = ITEMS.registerItem("wooden_mallet",
             props -> new MalletItem(MalletTier.WOOD, malletProps(MalletTier.WOOD, props)),

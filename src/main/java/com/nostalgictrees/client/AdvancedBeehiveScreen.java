@@ -30,22 +30,8 @@ public class AdvancedBeehiveScreen extends AbstractContainerScreen<AdvancedBeehi
         super(menu, playerInventory, title, 174, 222);
     }
 
-    /*
-     * 26.1 GUI overhaul:
-     *   - renderBg(...)     -> extractBackground(...)   (submit background draws)
-     *   - renderLabels(...) -> extractLabels(...)        (default renders titleLabel + inventoryLabel)
-     *   - GuiGraphics#drawString -> GuiGraphicsExtractor#text
-     *   - Tooltips set via setTooltipForNextFrame()
-     */
-
     @Override
     public void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
-        // The background texture bakes "Advanced Beehive" into the top-left, so the default
-        // extractLabels behaviour (which draws this.title there) would produce duplicate text.
-        // We render only the "Inventory" label that vanilla normally draws.
-        //
-        // If the baked-in title ever gets removed from the PNG, delete this override and the
-        // default implementation will handle both labels correctly.
         guiGraphics.text(this.font, this.playerInventoryTitle,
                 this.inventoryLabelX, this.inventoryLabelY, 4210752, false);
     }

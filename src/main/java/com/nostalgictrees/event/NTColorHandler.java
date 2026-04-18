@@ -12,17 +12,6 @@ import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 
 import java.util.List;
 
-/*
- * Block tinting for tree variants. Each tree type gets a constant color tint.
- *
- * 26.1 / FML 11.0 changes vs 1.21.1:
- *   - RegisterColorHandlersEvent.Block         -> RegisterColorHandlersEvent.BlockTintSources
- *   - Old color provider lambda                -> List<BlockTintSource> passed directly
- *   - @EventBusSubscriber no longer supports the mod bus (no 'bus' parameter in FML 11),
- *     so mod-bus event handlers must be registered manually via IEventBus#addListener.
- *
- * Item coloring is data-driven via each item JSON's "tints" array (handled in DynamicResourceGenerator).
- */
 public class NTColorHandler {
 
     /** Called from the main mod constructor on the CLIENT dist to wire up the listener. */

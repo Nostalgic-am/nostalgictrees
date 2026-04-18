@@ -13,10 +13,6 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 @EventBusSubscriber(modid = NostalgicTrees.MODID, value = Dist.CLIENT)
 public class NTClientEventHandler {
 
-    // Render layer assignment (cutout for saplings/leaves/drying rack) is now handled via
-    // data: blockstate JSONs specify "render_type" for each variant.
-    // See: src/main/resources/assets/nostalgictrees/blockstates/*.json
-
     @SubscribeEvent
     public static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(NTBlocks.ADVANCED_BEEHIVE_MENU.get(), AdvancedBeehiveScreen::new);

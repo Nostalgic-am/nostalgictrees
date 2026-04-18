@@ -20,12 +20,6 @@ import net.minecraft.world.item.Items;
 
 import java.util.List;
 
-/**
- * JEI 29.5 migration notes:
- *   - mezz.jei.api.recipe.RecipeType is deprecated; use mezz.jei.api.recipe.types.IRecipeType
- *     and construct via IRecipeType.create(Identifier, Class).
- *   - IIngredientAcceptor#addItemStack(ItemStack) is deprecated; use add(ItemStack).
- */
 public class MutationRecipeCategory implements IRecipeCategory<MutationRecipe> {
 
     public static final IRecipeType<MutationRecipe> RECIPE_TYPE = IRecipeType.create(
@@ -134,18 +128,12 @@ public class MutationRecipeCategory implements IRecipeCategory<MutationRecipe> {
         guiGraphics.fill(arrowR2X + 23, arrowR2Y + 2, arrowR2X + 24, arrowR2Y + 4, color);
     }
 
-    /**
-     * 26.1: BuiltInRegistries.BLOCK.get(Identifier) returns Optional<Holder.Reference<Block>>.
-     */
     private ItemStack getBlockItemStack(Identifier blockId) {
         return BuiltInRegistries.BLOCK.get(blockId)
                 .map(holder -> new ItemStack(holder.value().asItem()))
                 .orElse(ItemStack.EMPTY);
     }
 
-    /**
-     * 26.1: BuiltInRegistries.ITEM.get(Identifier) returns Optional<Holder.Reference<Item>>.
-     */
     private ItemStack getItemStack(Identifier itemId) {
         return BuiltInRegistries.ITEM.get(itemId)
                 .map(holder -> new ItemStack(holder.value()))

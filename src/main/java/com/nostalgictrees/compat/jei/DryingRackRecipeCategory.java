@@ -15,12 +15,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
-/**
- * JEI 29.5 migration notes:
- *   - mezz.jei.api.recipe.RecipeType is deprecated; use mezz.jei.api.recipe.types.IRecipeType
- *     and construct via IRecipeType.create(Identifier, Class).
- *   - IIngredientAcceptor#addItemStack(ItemStack) is deprecated; use add(ItemStack).
- */
 public class DryingRackRecipeCategory implements IRecipeCategory<DryingRecipe> {
 
     public static final IRecipeType<DryingRecipe> RECIPE_TYPE = IRecipeType.create(

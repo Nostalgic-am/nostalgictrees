@@ -315,12 +315,6 @@ public class AdvancedBeehiveBlockEntity extends BeehiveBlockEntity implements Co
 
 // ======================== NBT ========================
 
-    /*
-     * 26.1 change: saveAdditional/loadAdditional now take ValueOutput/ValueInput
-     * instead of (CompoundTag, HolderLookup.Provider). Persistence uses Codecs,
-     * so we use ItemStack.OPTIONAL_CODEC for each slot.
-     */
-
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
@@ -343,8 +337,6 @@ public class AdvancedBeehiveBlockEntity extends BeehiveBlockEntity implements Co
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        // Default vanilla implementation reads the BE's own NBT via saveCustomOnly.
-        // This produces a tag containing what saveAdditional(ValueOutput) emitted.
         return super.getUpdateTag(registries);
     }
 

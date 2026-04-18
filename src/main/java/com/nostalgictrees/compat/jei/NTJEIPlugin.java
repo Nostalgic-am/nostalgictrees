@@ -16,17 +16,6 @@ import net.minecraft.world.level.block.Block;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- * 26.1 JEI plugin.
- *
- * Drying and mutation recipes come from NTRecipeSyncHandler, which gets them pushed
- * from the server via OnDatapackSyncEvent/RecipesReceivedEvent. This works identically
- * in singleplayer, multiplayer, and across /reload. No more "only visible in SP"
- * limitation.
- *
- * Mallet recipes are built from NTTreeRegistry, which is identical on both sides, so
- * they don't need syncing.
- */
 @JeiPlugin
 public class NTJEIPlugin implements IModPlugin {
 
@@ -60,12 +49,6 @@ public class NTJEIPlugin implements IModPlugin {
             }
         }
         registration.addRecipes(MalletRecipeCategory.RECIPE_TYPE, malletRecipes);
-
-        // 2) Drying & mutation recipes — synced from the server via NTRecipeSyncHandler.
-        //    In SP: the integrated server pushes right after world load.
-        //    In MP: the remote server pushes on login and on /reload.
-        //    If JEI runs before sync completes (rare), the lists will be empty; JEI
-        //    reloads automatically when recipes arrive.
         registration.addRecipes(DryingRackRecipeCategory.RECIPE_TYPE,
                 NTRecipeSyncHandler.getDryingRecipes());
         registration.addRecipes(MutationRecipeCategory.RECIPE_TYPE,

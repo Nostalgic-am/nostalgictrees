@@ -12,21 +12,6 @@ import java.util.Collection;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.resources.Identifier;
 
-/*
- * 26.1 data format changes vs 1.21.1:
- *
- *   - Shaped recipe `key` entries:  {"H": {"item": "x"}}  ->  {"H": "x"}
- *   - Shapeless `ingredients`:      [{"item":"x"}]        ->  ["x"]
- *   - Smelting/smithing fields:     {"item": "x"}         ->  "x"  (bare string)
- *   - Tags in ingredients:          {"tag": "#t"}         ->  "#t"
- *
- *   - Item definitions: NEW required file at assets/<modid>/items/<name>.json which
- *     points at the actual model under assets/<modid>/models/item/<name>.json.
- *     Without this pointer file, items render as the purple/black "missing" texture.
- *     See writeItemDefinition().
- *
- *   - pack.mcmeta now requires min_format / max_format (handled in InMemoryPackResources).
- */
 public class DynamicResourceGenerator {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final String MODID = NostalgicTrees.MODID;
@@ -229,13 +214,6 @@ public class DynamicResourceGenerator {
     // ITEM DEFINITIONS (new in 26.1) + MODEL WRITERS
     // ===================================================================
 
-    /**
-     * 26.1: writes the new items/<name>.json pointer that tells the client which
-     * model renders this item. Without this file, items show the missing-texture
-     * purple/black checkerboard even if the underlying model exists.
-     *
-     * Shape:  { "model": { "type": "minecraft:model", "model": "<modelRef>" } }
-     */
     private static final int NO_TINT = 0;
 
     private static void writeItemDefinition(Path itemDefs, String name, String modelRef, int tintColor) throws IOException {

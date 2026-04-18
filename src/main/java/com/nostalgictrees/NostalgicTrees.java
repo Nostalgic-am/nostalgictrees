@@ -41,19 +41,10 @@ public class NostalgicTrees {
 
         modEventBus.addListener(this::addPackFinders);
 
-        // Client-only: register tint color handlers for tree blocks.
-        // FML 11 removed the 'bus = Bus.MOD' parameter from @EventBusSubscriber, so mod-bus
-        // event handlers (like RegisterColorHandlersEvent) must be wired up manually here.
         if (FMLEnvironment.getDist().isClient()) {
             com.nostalgictrees.event.NTColorHandler.register(modEventBus);
         }
 
-        // Recipe sync handler — uses the NeoForge GAME bus (not mod bus) for:
-        //   - OnDatapackSyncEvent    (server side, fires on login + /reload)
-        //   - RecipesReceivedEvent   (client side)
-        //   - ClientPlayerNetworkEvent.LoggingOut (client side, cache invalidation)
-        // Registered on both sides because OnDatapackSyncEvent fires on both the
-        // integrated and dedicated server, and RecipesReceivedEvent needs the client.
         NeoForge.EVENT_BUS.register(NTRecipeSyncHandler.class);
 
         LOGGER.info("Nostalgic Trees initialized with {} trees!", NTTreeRegistry.getAllTrees().size());

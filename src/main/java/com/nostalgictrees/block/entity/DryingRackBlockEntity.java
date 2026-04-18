@@ -26,18 +26,6 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Drying Rack Block Entity.
- * Recipes are loaded from the vanilla recipe manager (type: nostalgictrees:drying).
- *
- * 26.1 changes:
- *   - Level#getRecipeManager() removed.
- *     Must go through MinecraftServer, which is only accessible server-side.
- *     Safe here because findRecipe() is only called from serverTick().
- *   - RecipeManager#getAllRecipesFor(type) removed.
- *     Have to filter from getRecipes() manually.
- *   - saveAdditional/loadAdditional take ValueOutput/ValueInput (codec-based).
- */
 public class DryingRackBlockEntity extends BlockEntity {
 
     private ItemStack storedItem = ItemStack.EMPTY;

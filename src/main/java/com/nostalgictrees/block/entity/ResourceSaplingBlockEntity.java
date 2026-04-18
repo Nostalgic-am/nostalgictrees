@@ -313,12 +313,6 @@ public class ResourceSaplingBlockEntity extends BlockEntity {
     }
 
     // ======================== NBT ========================
-
-    /*
-     * 26.1: saveAdditional/loadAdditional take ValueOutput/ValueInput.
-     * Using Codecs to persist collections is much simpler than the old
-     * ListTag/StringTag/CompoundTag gymnastics.
-     */
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
