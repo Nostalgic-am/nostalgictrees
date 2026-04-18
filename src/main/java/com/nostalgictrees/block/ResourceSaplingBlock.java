@@ -95,10 +95,10 @@ public class ResourceSaplingBlock extends BaseEntityBlock implements Bonemealabl
     }
 
     // ======================== BUSH BEHAVIOR ========================
-
     protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
-        return state.is(BlockTags.DIRT) || state.is(Blocks.FARMLAND);
+        return state.is(BlockTags.SUPPORTS_VEGETATION);
     }
+    @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         BlockPos below = pos.below();
         return mayPlaceOn(level.getBlockState(below), level, below);

@@ -122,6 +122,11 @@ public class MutationRecipe implements Recipe<SingleRecipeInput> {
     }
 
     @Override
+    public boolean isSpecial() {
+        return true;
+    }
+
+    @Override
     public RecipeSerializer<MutationRecipe> getSerializer() {
         return NTRecipes.MUTATION_SERIALIZER.get();
     }

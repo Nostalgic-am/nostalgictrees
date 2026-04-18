@@ -155,7 +155,7 @@ public class DryingRackBlockEntity extends BlockEntity {
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return super.getUpdateTag(registries);
+        return this.saveCustomOnly(registries);
     }
 
     @Nullable

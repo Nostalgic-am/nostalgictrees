@@ -8,15 +8,23 @@ import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
+/**
+ * JEI 29.5 migration notes:
+ *   - mezz.jei.api.recipe.RecipeType is deprecated; use mezz.jei.api.recipe.types.IRecipeType
+ *     and construct via IRecipeType.create(Identifier, Class).
+ *   - IIngredientAcceptor#addItemStack(ItemStack) is deprecated; use add(ItemStack).
+ */
 public class MalletRecipeCategory implements IRecipeCategory<MalletRecipe> {
 
-    public static final RecipeType<MalletRecipe> RECIPE_TYPE =
-            RecipeType.create(NostalgicTrees.MODID, "mallet_processing", MalletRecipe.class);
+    public static final IRecipeType<MalletRecipe> RECIPE_TYPE = IRecipeType.create(
+            Identifier.fromNamespaceAndPath(NostalgicTrees.MODID, "mallet_processing"),
+            MalletRecipe.class);
 
     private final IDrawable icon;
     private final Component title;
@@ -28,7 +36,7 @@ public class MalletRecipeCategory implements IRecipeCategory<MalletRecipe> {
     }
 
     @Override
-    public RecipeType<MalletRecipe> getRecipeType() {
+    public IRecipeType<MalletRecipe> getRecipeType() {
         return RECIPE_TYPE;
     }
 
@@ -56,19 +64,19 @@ public class MalletRecipeCategory implements IRecipeCategory<MalletRecipe> {
     public void setRecipe(IRecipeLayoutBuilder builder, MalletRecipe recipe, IFocusGroup focuses) {
         // Input log on the left
         builder.addSlot(RecipeIngredientRole.INPUT, 1, 9)
-                .addItemStack(recipe.input());
+                .add(recipe.input());
 
         // All mallet tiers as crafting station in the middle
         builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, 50, 9)
-                .addItemStack(new ItemStack(NTItems.WOODEN_MALLET.get()))
-                .addItemStack(new ItemStack(NTItems.STONE_MALLET.get()))
-                .addItemStack(new ItemStack(NTItems.IRON_MALLET.get()))
-                .addItemStack(new ItemStack(NTItems.GOLDEN_MALLET.get()))
-                .addItemStack(new ItemStack(NTItems.DIAMOND_MALLET.get()))
-                .addItemStack(new ItemStack(NTItems.NETHERITE_MALLET.get()));
+                .add(new ItemStack(NTItems.WOODEN_MALLET.get()))
+                .add(new ItemStack(NTItems.STONE_MALLET.get()))
+                .add(new ItemStack(NTItems.IRON_MALLET.get()))
+                .add(new ItemStack(NTItems.GOLDEN_MALLET.get()))
+                .add(new ItemStack(NTItems.DIAMOND_MALLET.get()))
+                .add(new ItemStack(NTItems.NETHERITE_MALLET.get()));
 
         // Output stripped log on the right
         builder.addSlot(RecipeIngredientRole.OUTPUT, 99, 9)
-                .addItemStack(recipe.output());
+                .add(recipe.output());
     }
 }

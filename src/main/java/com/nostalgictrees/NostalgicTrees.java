@@ -3,10 +3,12 @@ package com.nostalgictrees;
 import com.nostalgictrees.data.DynamicResourceGenerator;
 import com.nostalgictrees.data.InMemoryPackResources;
 import com.nostalgictrees.data.NTTreeRegistry;
+import com.nostalgictrees.event.NTRecipeSyncHandler;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
 import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackSelectionConfig;
@@ -45,6 +47,14 @@ public class NostalgicTrees {
         if (FMLEnvironment.getDist().isClient()) {
             com.nostalgictrees.event.NTColorHandler.register(modEventBus);
         }
+
+        // Recipe sync handler — uses the NeoForge GAME bus (not mod bus) for:
+        //   - OnDatapackSyncEvent    (server side, fires on login + /reload)
+        //   - RecipesReceivedEvent   (client side)
+        //   - ClientPlayerNetworkEvent.LoggingOut (client side, cache invalidation)
+        // Registered on both sides because OnDatapackSyncEvent fires on both the
+        // integrated and dedicated server, and RecipesReceivedEvent needs the client.
+        NeoForge.EVENT_BUS.register(NTRecipeSyncHandler.class);
 
         LOGGER.info("Nostalgic Trees initialized with {} trees!", NTTreeRegistry.getAllTrees().size());
     }

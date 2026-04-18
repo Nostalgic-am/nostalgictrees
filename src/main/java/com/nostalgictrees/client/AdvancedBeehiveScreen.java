@@ -28,16 +28,27 @@ public class AdvancedBeehiveScreen extends AbstractContainerScreen<AdvancedBeehi
 
     public AdvancedBeehiveScreen(AdvancedBeehiveMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, 174, 222);
-        // imageWidth=174, imageHeight=222, inventoryLabelY = imageHeight - 94 — all set by super.
     }
 
     /*
      * 26.1 GUI overhaul:
-     *   - renderBg(...)     -> extractBackground(...) — submit background draws
-     *   - renderLabels(...) -> extractLabels(...)      — default implementation is fine
-     *   - render(...)       -> extractRenderState(...) — usually no override needed
-     *   - Tooltips set via setTooltipForNextFrame() during extractBackground
+     *   - renderBg(...)     -> extractBackground(...)   (submit background draws)
+     *   - renderLabels(...) -> extractLabels(...)        (default renders titleLabel + inventoryLabel)
+     *   - GuiGraphics#drawString -> GuiGraphicsExtractor#text
+     *   - Tooltips set via setTooltipForNextFrame()
      */
+
+    @Override
+    public void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+        // The background texture bakes "Advanced Beehive" into the top-left, so the default
+        // extractLabels behaviour (which draws this.title there) would produce duplicate text.
+        // We render only the "Inventory" label that vanilla normally draws.
+        //
+        // If the baked-in title ever gets removed from the PNG, delete this override and the
+        // default implementation will handle both labels correctly.
+        guiGraphics.text(this.font, this.playerInventoryTitle,
+                this.inventoryLabelX, this.inventoryLabelY, 4210752, false);
+    }
 
     @Override
     public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
@@ -61,9 +72,10 @@ public class AdvancedBeehiveScreen extends AbstractContainerScreen<AdvancedBeehi
             int by = y + BEE_POSITIONS[i][1];
             guiGraphics.blit(RenderPipelines.GUI_TEXTURED, BEE_TEXTURE,
                     bx + 1, by + 2,
-                    14.0f, 14.0f,
-                    10, 7,
-                    64, 64);
+                    10.0f, 10.0f,    // UV offset (was wrongly "14, 14" before)
+                    14, 14,          // display size on screen
+                    7, 7,            // source sample size
+                    64, 64);         // texture dimensions
         }
 
         // Tooltips — now scheduled via setTooltipForNextFrame.

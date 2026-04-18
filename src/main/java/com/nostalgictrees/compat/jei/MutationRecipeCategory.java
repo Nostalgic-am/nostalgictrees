@@ -9,8 +9,8 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -20,10 +20,17 @@ import net.minecraft.world.item.Items;
 
 import java.util.List;
 
+/**
+ * JEI 29.5 migration notes:
+ *   - mezz.jei.api.recipe.RecipeType is deprecated; use mezz.jei.api.recipe.types.IRecipeType
+ *     and construct via IRecipeType.create(Identifier, Class).
+ *   - IIngredientAcceptor#addItemStack(ItemStack) is deprecated; use add(ItemStack).
+ */
 public class MutationRecipeCategory implements IRecipeCategory<MutationRecipe> {
 
-    public static final RecipeType<MutationRecipe> RECIPE_TYPE =
-            RecipeType.create(NostalgicTrees.MODID, "mutation", MutationRecipe.class);
+    public static final IRecipeType<MutationRecipe> RECIPE_TYPE = IRecipeType.create(
+            Identifier.fromNamespaceAndPath(NostalgicTrees.MODID, "mutation"),
+            MutationRecipe.class);
 
     private final IDrawable icon;
     private final Component title;
@@ -35,7 +42,7 @@ public class MutationRecipeCategory implements IRecipeCategory<MutationRecipe> {
     }
 
     @Override
-    public RecipeType<MutationRecipe> getRecipeType() {
+    public IRecipeType<MutationRecipe> getRecipeType() {
         return RECIPE_TYPE;
     }
 
@@ -66,7 +73,7 @@ public class MutationRecipeCategory implements IRecipeCategory<MutationRecipe> {
         for (int i = 0; i < combs.size(); i++) {
             ItemStack combStack = getItemStack(combs.get(i));
             builder.addSlot(RecipeIngredientRole.INPUT, 1 + i * 18, 1)
-                    .addItemStack(combStack);
+                    .add(combStack);
         }
 
         // Catalyst next to combs on top row
@@ -75,18 +82,18 @@ public class MutationRecipeCategory implements IRecipeCategory<MutationRecipe> {
             ItemStack catalystStack = getItemStack(recipe.getCatalyst());
             catalystStack.setCount(recipe.getCatalystCount());
             builder.addSlot(RecipeIngredientRole.INPUT, nextX, 1)
-                    .addItemStack(catalystStack);
+                    .add(catalystStack);
         }
 
         // Base sapling below inputs
         ItemStack baseSaplingStack = getBlockItemStack(recipe.getBaseSapling());
         builder.addSlot(RecipeIngredientRole.INPUT, 19, 33)
-                .addItemStack(baseSaplingStack);
+                .add(baseSaplingStack);
 
         // Bee with pollination count
         int pollinations = recipe.getPollinationsRequired();
         builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, 100, 33)
-                .addItemStack(new ItemStack(Items.BEE_SPAWN_EGG))
+                .add(new ItemStack(Items.BEE_SPAWN_EGG))
                 .addRichTooltipCallback((recipeSlotView, tooltip) -> {
                     tooltip.add(Component.literal("Requires " + pollinations + " Pollinations"));
                 });
@@ -94,7 +101,7 @@ public class MutationRecipeCategory implements IRecipeCategory<MutationRecipe> {
         // Result sapling on the far right
         ItemStack resultStack = getBlockItemStack(recipe.getResultSapling());
         builder.addSlot(RecipeIngredientRole.OUTPUT, 145, 33)
-                .addItemStack(resultStack);
+                .add(resultStack);
     }
 
     @Override

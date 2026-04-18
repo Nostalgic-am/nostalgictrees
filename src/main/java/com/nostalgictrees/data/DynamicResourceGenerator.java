@@ -85,7 +85,6 @@ public class DynamicResourceGenerator {
             langObj.addProperty("block." + MODID + ".advanced_beehive", "Advanced Beehive");
             langObj.addProperty("gui.nostalgictrees.advanced_beehive", "Advanced Beehive");
             // Jade plugin config translations (26.1: Jade requires these to exist)
-            langObj.addProperty("config.jade.plugin_nostalgictrees.advanced_beehive", "Advanced Beehive");
             langObj.addProperty("config.jade.plugin_nostalgictrees.drying_rack", "Drying Rack");
             langObj.addProperty("config.jade.plugin_nostalgictrees.sapling_mutation", "Sapling Mutation");
             for (String tier : new String[]{"wooden", "stone", "iron", "golden", "diamond", "netherite"}) {
@@ -182,6 +181,7 @@ public class DynamicResourceGenerator {
             writeTag(tagsBlock.resolve("leaves.json"), leavesTag);
             writeTag(tagsBlock.resolve("saplings.json"), saplingsTag);
             writeTag(tagsBlock.resolve("flowers.json"), saplingsTag);
+            writeTag(tagsBlock.resolve("bee_attractive.json"), saplingsTag);
             writeTag(tagsMineable.resolve("axe.json"), axeTag);
             writeTag(tagsMineable.resolve("hoe.json"), hoeTag);
             writeTag(modTagsBlock.resolve("resource_logs.json"), resourceLogsTag);

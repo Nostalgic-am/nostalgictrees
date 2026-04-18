@@ -1,23 +1,16 @@
 package com.nostalgictrees.compat.jei;
 
 import com.nostalgictrees.NTBlocks;
-import com.nostalgictrees.NTRecipes;
 import com.nostalgictrees.NostalgicTrees;
 import com.nostalgictrees.data.NTTreeRegistry;
 import com.nostalgictrees.data.ResourceTreeType;
-import com.nostalgictrees.recipe.DryingRecipe;
-import com.nostalgictrees.recipe.MutationRecipe;
+import com.nostalgictrees.event.NTRecipeSyncHandler;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.Block;
 
 import java.util.ArrayList;
@@ -26,13 +19,13 @@ import java.util.List;
 /*
  * 26.1 JEI plugin.
  *
- * Mojang removed general-purpose recipe access from the client side; only
- * "displayable" recipe info (RecipeDisplayId) is synced to multiplayer clients.
- * Workaround: pull recipes from the IntegratedServer in singleplayer. In
- * multiplayer, drying/mutation recipes simply won't appear in JEI — a
- * limitation JEI itself has acknowledged for 26.1.
+ * Drying and mutation recipes come from NTRecipeSyncHandler, which gets them pushed
+ * from the server via OnDatapackSyncEvent/RecipesReceivedEvent. This works identically
+ * in singleplayer, multiplayer, and across /reload. No more "only visible in SP"
+ * limitation.
  *
- * Mallet recipes are unaffected since they're code-generated from NTTreeRegistry.
+ * Mallet recipes are built from NTTreeRegistry, which is identical on both sides, so
+ * they don't need syncing.
  */
 @JeiPlugin
 public class NTJEIPlugin implements IModPlugin {
@@ -68,32 +61,14 @@ public class NTJEIPlugin implements IModPlugin {
         }
         registration.addRecipes(MalletRecipeCategory.RECIPE_TYPE, malletRecipes);
 
-        // 2) Drying & mutation recipes — need the RecipeManager, which is only
-        //    reachable through the integrated server (singleplayer only in 26.1).
-        IntegratedServer server = Minecraft.getInstance().getSingleplayerServer();
-        if (server == null) return;
-
-        RecipeManager recipeManager = server.getRecipeManager();
-
-        List<DryingRecipe> dryingRecipes = filterRecipes(recipeManager, DryingRecipe.class);
-        registration.addRecipes(DryingRackRecipeCategory.RECIPE_TYPE, dryingRecipes);
-
-        List<MutationRecipe> mutationRecipes = filterRecipes(recipeManager, MutationRecipe.class);
-        registration.addRecipes(MutationRecipeCategory.RECIPE_TYPE, mutationRecipes);
-    }
-
-    /**
-     * Filter recipes by concrete type. Needed because 26.1 removed
-     * RecipeManager#getAllRecipesFor(type) — have to iterate getRecipes() manually.
-     */
-    @SuppressWarnings("unchecked")
-    private static <T extends Recipe<?>> List<T> filterRecipes(RecipeManager recipeManager, Class<T> recipeClass) {
-        List<T> result = new ArrayList<>();
-        for (RecipeHolder<?> holder : recipeManager.getRecipes()) {
-            if (recipeClass.isInstance(holder.value())) {
-                result.add((T) holder.value());
-            }
-        }
-        return result;
+        // 2) Drying & mutation recipes — synced from the server via NTRecipeSyncHandler.
+        //    In SP: the integrated server pushes right after world load.
+        //    In MP: the remote server pushes on login and on /reload.
+        //    If JEI runs before sync completes (rare), the lists will be empty; JEI
+        //    reloads automatically when recipes arrive.
+        registration.addRecipes(DryingRackRecipeCategory.RECIPE_TYPE,
+                NTRecipeSyncHandler.getDryingRecipes());
+        registration.addRecipes(MutationRecipeCategory.RECIPE_TYPE,
+                NTRecipeSyncHandler.getMutationRecipes());
     }
 }

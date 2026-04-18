@@ -12,15 +12,21 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.jspecify.annotations.Nullable;
 
-@OnlyIn(Dist.CLIENT)
+/*
+ * 26.1 BlockEntityRenderer migration:
+ *   - Split into extractRenderState + submit phases (two-phase renderer).
+ *   - ItemRenderer.renderStatic removed; use ItemModelResolver + ItemStackRenderState.
+ *   - MultiBufferSource -> SubmitNodeCollector in the submit phase.
+ *
+ * Rendering logic matches the 1.21.1 original: hang the item below the shelf like an
+ * item frame, using ItemDisplayContext.FIXED (vertical wall-mount orientation).
+ * No X-axis rotation — that would lay the item flat, which is campfire behaviour.
+ */
 public class DryingRackRenderer implements BlockEntityRenderer<DryingRackBlockEntity, DryingRackRenderState> {
     private final ItemModelResolver itemModelResolver;
 
@@ -68,12 +74,14 @@ public class DryingRackRenderer implements BlockEntityRenderer<DryingRackBlockEn
             SubmitNodeCollector submitNodeCollector,
             CameraRenderState camera
     ) {
-        if (state.itemRenderState == null) return;
+        if (state.itemRenderState == null || state.itemRenderState.isEmpty()) return;
 
+        // Position the item hanging below the shelf. The shelf model occupies y=14..16
+        // and z=0..4 (facing north). Y=0.65 puts the item hanging just below the shelf;
+        // the X/Z offset based on facing centers it on the shelf surface.
         double itemX = 0.5;
         double itemZ = 0.5;
         float yaw = 0f;
-
         switch (state.facing) {
             case NORTH -> { itemZ = 0.19; yaw = 180f; }
             case SOUTH -> { itemZ = 0.81; yaw = 0f; }
@@ -88,7 +96,6 @@ public class DryingRackRenderer implements BlockEntityRenderer<DryingRackBlockEn
         poseStack.scale(0.6f, 0.6f, 0.6f);
 
         state.itemRenderState.submit(poseStack, submitNodeCollector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
-
         poseStack.popPose();
     }
 }

@@ -93,6 +93,11 @@ public class DryingRecipe implements Recipe<SingleRecipeInput> {
     }
 
     @Override
+    public boolean isSpecial() {
+        return true;
+    }
+
+    @Override
     public RecipeSerializer<DryingRecipe> getSerializer() {
         return NTRecipes.DRYING_SERIALIZER.get();
     }

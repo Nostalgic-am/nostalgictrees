@@ -9,15 +9,23 @@ import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
+/**
+ * JEI 29.5 migration notes:
+ *   - mezz.jei.api.recipe.RecipeType is deprecated; use mezz.jei.api.recipe.types.IRecipeType
+ *     and construct via IRecipeType.create(Identifier, Class).
+ *   - IIngredientAcceptor#addItemStack(ItemStack) is deprecated; use add(ItemStack).
+ */
 public class DryingRackRecipeCategory implements IRecipeCategory<DryingRecipe> {
 
-    public static final RecipeType<DryingRecipe> RECIPE_TYPE =
-            RecipeType.create(NostalgicTrees.MODID, "drying_rack", DryingRecipe.class);
+    public static final IRecipeType<DryingRecipe> RECIPE_TYPE = IRecipeType.create(
+            Identifier.fromNamespaceAndPath(NostalgicTrees.MODID, "drying_rack"),
+            DryingRecipe.class);
 
     private final IDrawable icon;
     private final Component title;
@@ -29,7 +37,7 @@ public class DryingRackRecipeCategory implements IRecipeCategory<DryingRecipe> {
     }
 
     @Override
-    public RecipeType<DryingRecipe> getRecipeType() {
+    public IRecipeType<DryingRecipe> getRecipeType() {
         return RECIPE_TYPE;
     }
 
@@ -57,17 +65,17 @@ public class DryingRackRecipeCategory implements IRecipeCategory<DryingRecipe> {
     public void setRecipe(IRecipeLayoutBuilder builder, DryingRecipe recipe, IFocusGroup focuses) {
         // Input on the left
         builder.addSlot(RecipeIngredientRole.INPUT, 1, 9)
-                .addItemStack(recipe.getInputStack());
+                .add(recipe.getInputStack());
 
         // Drying rack as catalyst in the middle
         builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, 50, 9)
-                .addItemStack(new ItemStack(NTItems.DRYING_RACK_ITEM.get()))
+                .add(new ItemStack(NTItems.DRYING_RACK_ITEM.get()))
                 .addRichTooltipCallback((recipeSlotView, tooltip) -> {
                     tooltip.add(Component.literal(String.format("%.1f seconds", recipe.getDryingTime() / 20.0)));
                 });
 
         // Output on the right
         builder.addSlot(RecipeIngredientRole.OUTPUT, 99, 9)
-                .addItemStack(recipe.getOutputStack());
+                .add(recipe.getOutputStack());
     }
 }
