@@ -584,7 +584,17 @@ public class DynamicResourceGenerator {
         currentPack.putJson(type, loc, content);
     }
 
-    private static String cap(String s) { return s.substring(0, 1).toUpperCase() + s.substring(1); }
+    private static String cap(String s) {
+        String[] parts = s.split("_");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            if (parts[i].isEmpty()) continue;
+            if (i > 0) sb.append(" ");
+            sb.append(parts[i].substring(0, 1).toUpperCase());
+            sb.append(parts[i].substring(1));
+        }
+        return sb.toString();
+    }
 
     // ===================================================================
     // DRYING RACK
@@ -862,11 +872,72 @@ public class DynamicResourceGenerator {
                 MODID + ":diamond_sapling",
                 new String[]{MODID + ":gold_honeycomb", MODID + ":obsidian_honeycomb", MODID + ":diamond_honeycomb", MODID + ":quartz_honeycomb"},
                 MODID + ":netherite_sapling", 10, "minecraft:netherite_ingot", 1);
+
+        //-----Mekanism Mutations: ------
+        // Osmium
+        writeMutationRecipe(recipes, "osmium_mutation",
+                MODID + ":stone_sapling",
+                new String[]{MODID + ":copper_honeycomb", MODID + ":iron_honeycomb", MODID + ":redstone_honeycomb"},
+                MODID + ":osmium_sapling", 7, "mekanism:block_osmium", 1, "mekanism");
+
+        // Bronze
+        writeMutationRecipe(recipes, "bronze_mutation",
+                MODID + ":copper_sapling",
+                new String[]{MODID + ":tin_honeycomb", MODID + ":copper_honeycomb"},
+                MODID + ":bronze_sapling", 7, "mekanism:block_bronze", 1, "mekanism");
+
+        // Steel
+        writeMutationRecipe(recipes, "steel_mutation",
+                MODID + ":redstone_sapling",
+                new String[]{MODID + ":coal_honeycomb", MODID + ":iron_honeycomb", MODID + ":gold_honeycomb"},
+                MODID + ":steel_sapling", 7, "mekanism:block_steel", 1, "mekanism");
+
+        // Refined Obsidian
+        writeMutationRecipe(recipes, "refined_obsidian_mutation",
+                MODID + ":osmium_sapling",
+                new String[]{MODID + ":obsidian_honeycomb", MODID + ":diamond_honeycomb", MODID + ":osmium_honeycomb"},
+                MODID + ":refined_obsidian_sapling", 10, "mekanism:block_refined_obsidian", 1, "mekanism");
+
+        // Refined Glowstone
+        writeMutationRecipe(recipes, "refined_glowstone_mutation",
+                MODID + ":glowstone_sapling",
+                new String[]{MODID + ":redstone_honeycomb", MODID + ":gold_honeycomb", MODID + ":osmium_honeycomb"},
+                MODID + ":refined_glowstone_sapling", 7, "mekanism:block_refined_glowstone", 1, "mekanism");
+
+        // Tin
+        writeMutationRecipe(recipes, "tin_mutation",
+                MODID + ":copper_sapling",
+                new String[]{MODID + ":copper_honeycomb", MODID + ":iron_honeycomb", MODID + ":redstone_honeycomb"},
+                MODID + ":tin_sapling", 5, "mekanism:block_tin", 1, "mekanism");
+
+        // Lead
+        writeMutationRecipe(recipes, "lead_mutation",
+                MODID + ":ice_sapling",
+                new String[]{MODID + ":stone_honeycomb", MODID + ":ice_honeycomb"},
+                MODID + ":lead_sapling", 5, "mekanism:block_lead", 1, "mekanism");
+
+        // Uranium
+        writeMutationRecipe(recipes, "uranium_mutation",
+                MODID + ":emerald_sapling",
+                new String[]{MODID + ":redstone_honeycomb", MODID + ":gold_honeycomb", MODID + ":steel_honeycomb"},
+                MODID + ":uranium_sapling", 7, "mekanism:block_uranium", 1, "mekanism");
     }
 
     private static void writeMutationRecipe(Path dir, String name, String baseSapling,
-                                             String[] honeycombs, String result, int pollinations,
-                                             String catalyst, int catalystCount) throws IOException {
+                                            String[] honeycombs, String result, int pollinations,
+                                            String catalyst, int catalystCount) throws IOException {
+        writeMutationRecipe(dir, name, baseSapling, honeycombs, result, pollinations, catalyst, catalystCount, null);
+    }
+
+    private static void writeMutationRecipe(Path dir, String name, String baseSapling,
+                                            String[] honeycombs, String result, int pollinations,
+                                            String catalyst, int catalystCount, String requiredMod) throws IOException {
+        // Skip compat mutations entirely if their required mod isn't loaded.
+        // This prevents JEI from displaying broken recipe entries with missing result items.
+        if (requiredMod != null && !net.neoforged.fml.ModList.get().isLoaded(requiredMod)) {
+            return;
+        }
+
         JsonObject o = new JsonObject();
         o.addProperty("type", MODID + ":mutation");
         o.addProperty("base_sapling", baseSapling);

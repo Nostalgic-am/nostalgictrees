@@ -20,12 +20,11 @@ public class NTTreeRegistry {
         Path configDir = FMLPaths.CONFIGDIR.get().resolve("nostalgictrees/trees");
         try { Files.createDirectories(configDir); } catch (IOException e) { }
 
-        // Write defaults if empty
-        try {
-            if (Files.list(configDir).noneMatch(p -> p.toString().endsWith(".json"))) {
-                writeDefaults(configDir);
-            }
-        } catch (IOException e) { }
+        // Write any missing default tree files.
+        // Per-file existence check: existing files are never touched (user edits preserved),
+        // missing files regenerate from defaults (new trees appear on update; deletions
+        // regenerate since modpack devs can override/remove via KubeJS or datapacks).
+        writeDefaults(configDir);
 
         // Load all JSONs
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(configDir, "*.json")) {
@@ -80,14 +79,44 @@ public class NTTreeRegistry {
         w(dir,"emerald","tier_5","minecraft:emerald",1,"30C74D");
         w(dir,"obsidian","tier_5","minecraft:obsidian",1,"5C2D8C");
         w(dir,"netherite","tier_5","minecraft:netherite_scrap",1,"4A3229");
+
+        //Mekanism Trees
+        w(dir,"osmium","tier_4","mekanism:ingot_osmium",1,"C8D4DD","mekanism");
+        w(dir,"bronze","tier_4","mekanism:ingot_bronze",1,"FCC677","mekanism");
+        w(dir,"steel","tier_4","mekanism:ingot_steel",1,"868683","mekanism");
+        w(dir,"refined_obsidian","tier_4","mekanism:ingot_refined_obsidian",1,"9680B9","mekanism");
+        w(dir,"refined_glowstone","tier_4","mekanism:ingot_refined_glowstone",1,"FCf1AA","mekanism");
+        w(dir,"tin","tier_4","mekanism:ingot_tin",1,"F6F6E8","mekanism");
+        w(dir,"lead","tier_4","mekanism:ingot_lead",1,"9FB4B2","mekanism");
+        w(dir,"uranium","tier_4","mekanism:ingot_uranium",1,"A7F2A5","mekanism");
     }
 
     private static void w(Path dir, String name, String tier, String output, int count, String color) {
+        w(dir, name, tier, output, count, color, null);
+    }
+
+    private static void w(Path dir, String name, String tier, String output, int count, String color, String requiredMod) {
+        Path file = dir.resolve(name + ".json");
+        // Per-file existence check: never overwrite. Users who edit a config keep their edits;
+        // users who delete a config get it back on next launch (intentional — modpack devs
+        // should use KubeJS/datapacks to remove recipes rather than deleting config files).
+        if (Files.exists(file)) return;
+
         JsonObject o = new JsonObject();
-        o.addProperty("name", name); o.addProperty("tier", tier);
-        o.addProperty("output_item", output); o.addProperty("output_count", count);
+        o.addProperty("name", name);
+        o.addProperty("tier", tier);
+        o.addProperty("output_item", output);
+        o.addProperty("output_count", count);
         o.addProperty("color", color);
-        try { Files.writeString(dir.resolve(name + ".json"), GSON.toJson(o)); } catch (IOException e) { }
+        if (requiredMod != null) {
+            o.addProperty("required_mod", requiredMod);
+        }
+        try {
+            Files.writeString(file, GSON.toJson(o));
+            NostalgicTrees.LOGGER.info("Wrote default tree config: {}", name);
+        } catch (IOException e) {
+            NostalgicTrees.LOGGER.error("Failed to write default tree config: {}", name, e);
+        }
     }
 
     public static Optional<ResourceTreeType> get(String name) { return Optional.ofNullable(TREES.get(name)); }
