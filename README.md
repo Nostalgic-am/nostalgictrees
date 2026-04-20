@@ -1,5 +1,5 @@
 # Nostalgic Trees
-
+[![Wiki](https://img.shields.io/badge/Wiki-View%20Wiki-black?logo=bookstack&logoColor=white&style=for-the-badge)](https://nostalgic.am/wiki/nostalgictrees/) [![Discord](https://img.shields.io/badge/Discord-Join%20Us-5865F2?logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/vG3m4NWK7p) [![Patreon](https://img.shields.io/badge/Patreon-Support%20Us!-f96854?logo=patreon&logoColor=white&style=for-the-badge)](https://patreon.com/NostalgicModding)
 ---
 ## What It Does
 
