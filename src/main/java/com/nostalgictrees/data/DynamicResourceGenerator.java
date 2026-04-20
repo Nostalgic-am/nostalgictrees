@@ -921,6 +921,38 @@ public class DynamicResourceGenerator {
                 MODID + ":emerald_sapling",
                 new String[]{MODID + ":redstone_honeycomb", MODID + ":gold_honeycomb", MODID + ":steel_honeycomb"},
                 MODID + ":uranium_sapling", 7, "mekanism:block_uranium", 1, "mekanism");
+
+        //-----AE2 Mutations: ------
+        // Sky Stone
+        writeMutationRecipe(recipes, "sky_stone_block_mutation",
+                MODID + ":stone_sapling",
+                new String[]{MODID + ":experience_honeycomb", MODID + ":gold_honeycomb", MODID + ":stone_honeycomb"},
+                MODID + ":sky_stone_block_sapling", 5, "ae2:sky_stone_block", 9, "ae2");
+
+        // Certus Quartz
+        writeMutationRecipe(recipes, "certus_quartz_crystal_mutation",
+                MODID + ":lapis_sapling",
+                new String[]{MODID + ":sky_stone_block_honeycomb", MODID + ":lapis_honeycomb", MODID + ":quartz_honeycomb"},
+                MODID + ":certus_quartz_crystal_sapling", 7, "ae2:quartz_block", 1, "ae2");
+
+        // Fluix Crystal
+        writeMutationRecipe(recipes, "fluix_crystal_mutation",
+                MODID + ":certus_quartz_crystal_sapling",
+                new String[]{MODID + ":sky_stone_block_honeycomb", MODID + ":certus_quartz_crystal_honeycomb", MODID + ":quartz_honeycomb"},
+                MODID + ":fluix_crystal_sapling", 7, "ae2:fluix_block", 1, "ae2");
+
+        //-----Refined Storage: ------
+        //Quartz Enriched Iron
+        writeMutationRecipe(recipes, "quartz_enriched_iron_mutation",
+                MODID + ":iron_sapling",
+                new String[]{MODID + ":bone_honeycomb", MODID + ":iron_honeycomb", MODID + ":quartz_honeycomb"},
+                MODID + ":quartz_enriched_iron_sapling", 7, "refinedstorage:quartz_enriched_iron", 9, "refinedstorage");
+
+        //Quartz Enriched Copper
+        writeMutationRecipe(recipes, "quartz_enriched_copper_mutation",
+                MODID + ":copper_sapling",
+                new String[]{MODID + ":redstone_honeycomb", MODID + ":copper_honeycomb", MODID + ":quartz_honeycomb"},
+                MODID + ":quartz_enriched_copper_sapling", 7, "refinedstorage:quartz_enriched_copper", 9, "refinedstorage");
     }
 
     private static void writeMutationRecipe(Path dir, String name, String baseSapling,
