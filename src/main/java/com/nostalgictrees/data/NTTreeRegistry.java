@@ -89,6 +89,15 @@ public class NTTreeRegistry {
         w(dir,"tin","tier_4","mekanism:ingot_tin",1,"F6F6E8","mekanism");
         w(dir,"lead","tier_4","mekanism:ingot_lead",1,"9FB4B2","mekanism");
         w(dir,"uranium","tier_4","mekanism:ingot_uranium",1,"A7F2A5","mekanism");
+
+        //AE2
+        w(dir,"sky_stone_block","tier_3","ae2:sky_stone_block",6,"1F2221","ae2");
+        w(dir,"certus_quartz_crystal","tier_3","ae2:certus_quartz_crystal",4,"9AD0FC","ae2");
+        w(dir,"fluix_crystal","tier_3","ae2:fluix_crystal",4,"8052b6","ae2");
+
+        // Refined Storage
+        w(dir,"quartz_enriched_iron","tier_3","refinedstorage:quartz_enriched_iron",4,"E3E3E2","refinedstorage");
+        w(dir,"quartz_enriched_copper","tier_3","refinedstorage:quartz_enriched_copper",4,"F39078","refinedstorage");
     }
 
     private static void w(Path dir, String name, String tier, String output, int count, String color) {
