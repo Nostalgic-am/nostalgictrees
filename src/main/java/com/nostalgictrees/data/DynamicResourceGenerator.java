@@ -442,13 +442,12 @@ public class DynamicResourceGenerator {
         o.addProperty("category", "misc");
         JsonArray pattern = new JsonArray();
         pattern.add("ACA");
-        pattern.add("CHC");
+        pattern.add("CAC");
         pattern.add("ACA");
         o.add("pattern", pattern);
         JsonObject key = new JsonObject();
         keyItem(key, "A", MODID + ":" + name + "_apple");
         keyItem(key, "C", MODID + ":" + name + "_chunk");
-        keyItem(key, "H", MODID + ":" + name + "_honeycomb");
         o.add("key", key);
         o.add("result", shapedResult(outputItem, outputCount));
         writeJson(dir.resolve(name + "_resource_from_chunk_apple.json"), o);
