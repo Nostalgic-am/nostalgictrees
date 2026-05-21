@@ -366,7 +366,7 @@ public class DynamicResourceGenerator {
         o.addProperty("type", "minecraft:crafting_shaped");
         JsonArray pattern = new JsonArray();
         pattern.add("ACA");
-        pattern.add("CHC");
+        pattern.add("CAC");
         pattern.add("ACA");
         o.add("pattern", pattern);
         JsonObject key = new JsonObject();
@@ -376,9 +376,6 @@ public class DynamicResourceGenerator {
         JsonObject c = new JsonObject();
         c.addProperty("item", MODID + ":" + name + "_chunk");
         key.add("C", c);
-        JsonObject h = new JsonObject();
-        h.addProperty("item", MODID + ":" + name + "_honeycomb");
-        key.add("H", h);
         o.add("key", key);
         JsonObject r = new JsonObject();
         r.addProperty("id", outputItem);
