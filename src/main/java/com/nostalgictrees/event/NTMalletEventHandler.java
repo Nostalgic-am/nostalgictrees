@@ -5,7 +5,6 @@ import com.nostalgictrees.NostalgicTrees;
 import com.nostalgictrees.block.ResourceLogBlock;
 import com.nostalgictrees.item.MalletItem;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
@@ -14,13 +13,16 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 
 @EventBusSubscriber(modid = NostalgicTrees.MODID)
 public class NTMalletEventHandler {
 
+    // NeoForge 26.1.2.21 replaced BlockEvent.BreakEvent with BreakBlockEvent,
+    // which now fires on both the client and the server.
     @SubscribeEvent
-    public static void onBlockBreak(BlockEvent.BreakEvent event) {
+    public static void onBlockBreak(BreakBlockEvent event) {
+        // The block swap and drop happen on the server only.
         if (event.getLevel().isClientSide()) return;
 
         BlockState state = event.getState();
